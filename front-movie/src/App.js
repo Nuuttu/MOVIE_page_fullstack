@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import logo from './logo.svg';
 import './App.css';
 import Types from './components/mui'
-import axios from 'axios';
 import Typography from '@mui/material/Typography';
 
 import MovieList from './components/movieList'
@@ -24,18 +22,39 @@ function App() {
     }, 1000);
   }
 
+  const sortWatches = list => {
+    var sortedList = list
+    for (var i = 1; i < sortedList.length; i++) {
+      for (var j = i; j > 0; j--) {
+        if (list[j - 1].Date < list[j].Date) {
+          var hj = sortedList[j - 1]
+          sortedList[j - 1] = sortedList[j]
+          sortedList[j] = hj
+        }
+      }
+    }
+    return sortedList
+  }
+
   const getMovies = async () => {
     try {
       const ml = await movieService.getAll()
       console.log('ml', ml)
-      setMovies(ml.map(m => {
-        if (m.Watches !== null) {
-          m.LastViewing = new Date(m.Watches[m.Watches.length - 1].Date).getTime()
-        } else {
-          m.LastViewing = null
-        }
-        return m
-      }))
+      ml != null && (
+        setMovies(ml.map(m => {
+          if (m.Watches !== null) {
+            m.Watches = sortWatches(m.Watches)
+            // m.LastViewing = new Date(m.Watches[m.Watches.length - 1].Date).getTime()
+            m.LastViewing = new Date(m.Watches[0].Date).getTime()
+            m.Watchtimes = m.Watches.length
+          } else {
+            m.LastViewing = null
+            if (m.Watches !== null) m.Watchtimes = m.Watches.length
+          }
+          return m
+        })
+        )
+      )
       setLoading(false)
     } catch (e) {
       console.log('error: ', e)

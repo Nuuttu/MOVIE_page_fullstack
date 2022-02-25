@@ -10,4 +10,6 @@ require (
 require (
 	github.com/darahayes/go-boom v0.0.0-20200826120415-fa5cb724143a // indirect
 	github.com/felixge/httpsnoop v1.0.1 // indirect
+	github.com/gorilla/websocket v1.5.0 // indirect
+	github.com/rs/xid v1.3.0 // indirect
 )

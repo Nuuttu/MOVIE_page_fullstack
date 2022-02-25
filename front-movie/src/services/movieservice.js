@@ -1,4 +1,3 @@
-import React from "react";
 import axios from "axios";
 
 const baseUrl = 'http://localhost:10000'
@@ -20,6 +19,16 @@ const addMovie = async (movie) => {
   return response.data
 }
 
-const movieService = { getAll, addMovie }
+const addViewing = async (viewing, id) => {
+  console.log('adding a viewing')
+  const headers = {
+    'Content-Type': 'application/json'
+  }
+  const response = await axios.post(baseUrl + `/movies/${id}/viewing/add`, viewing, headers)
+
+  return response.data
+}
+
+const movieService = { getAll, addMovie, addViewing }
 
 export default movieService

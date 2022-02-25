@@ -24,6 +24,7 @@ import { visuallyHidden } from '@mui/utils';
 import Tooltip from '@mui/material/Tooltip';
 import Toolbar from '@mui/material/Toolbar';
 import { alpha } from '@mui/material/styles';
+import WatchForm from './watchForm';
 
 function Row(props) {
   const { row } = props;
@@ -41,18 +42,29 @@ function Row(props) {
         <TableCell component="th" scope="row">
           {row.Name}
         </TableCell>
+        <TableCell align="right">{row.Year}</TableCell>
         <TableCell align="right">{row.Rating}</TableCell>
         {row.Watches !== null ?
-          <TableCell align="right">{dateFormatter(row.Watches[row.Watches.length - 1].Date)}</TableCell> :
-          <TableCell align="right">-</TableCell>
+          <TableCell align="right">
+            {row.LastViewing > 0 ?
+              //dateFormatter(row.Watches[row.Watches.length - 1].Date)
+              dateFormatter(row.Watches[0].Date)
+              : '-'
+            }
+          </TableCell>
+          : <TableCell align="right">-</TableCell>
         }
-        <TableCell>
+        {row.Watchtimes !== null ?
+          <TableCell align="right">{row.Watchtimes}</TableCell>
+          : <TableCell align="right">-</TableCell>
+        }
+        <TableCell width={2}>
           <IconButton
             aria-label="expand row"
             size="small"
             onClick={() => setOpen(!open)}
           >
-            {open ? <KeyboardArrowDownIcon /> : <KeyboardArrowDownIcon />}
+            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </TableCell>
       </TableRow>
@@ -62,24 +74,29 @@ function Row(props) {
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box sx={{ margin: 1 }}>
 
-              <Typography variant="h6" gutterBottom component="div">
+              <Typography align='center' variant="h5" gutterBottom component="div">
                 Review
               </Typography>
-              <Typography variant='body1' gutterBottom component="div">
+              <Typography variant='body2' gutterBottom component="div">
                 {row.Review}
               </Typography>
-              <Divider variant='fullWidth' ><Typography variant='h6'>Watches</Typography></Divider>
+              <Divider variant='fullWidth' ><Box display='flex' flexDirection='row' alignItems='center'><Typography variant='h6'>Watches</Typography><WatchForm movie={row} /></Box></Divider>
               <Table size="small" aria-label="watches">
                 <TableHead>
                   <TableRow>
-                    <TableCell>Date</TableCell>
-                    <TableCell>Note</TableCell>
+                    <TableCell align='left'>Date</TableCell>
+                    <TableCell align='left'>Place</TableCell>
+                    <TableCell align='left'>Note</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {row.Watches !== null && row.Watches.map((w) => (
-                    <TableRow key={w.Date}>
-                      <TableCell component="th" scope="row">{dateFormatter(w.Date)}</TableCell>
+                  {row.Watches !== null && row.Watches.map((w, i) => (
+                    <TableRow key={`watches${i}`}>
+                      {new Date(w.Date).getTime() < 0 ?
+                        <TableCell component="th" scope="row">-</TableCell>
+                        : <TableCell component="th" scope="row">{dateFormatter(w.Date)}</TableCell>
+                      }
+                      <TableCell>{w.Place}</TableCell>
                       <TableCell>{w.Note}</TableCell>
                     </TableRow>
                   ))}
@@ -95,8 +112,6 @@ function Row(props) {
 
 
 function descendingComparator(a, b, orderBy) {
-  console.log('comparing', a, b)
-  console.log('orderby', orderBy)
   if (b[orderBy] < a[orderBy]) {
     return -1;
   }
@@ -135,6 +150,13 @@ const headCells = [
     align: 'center'
   },
   {
+    id: 'Year',
+    numeric: true,
+    disablePadding: false,
+    label: 'Year',
+    align: 'right'
+  },
+  {
     id: 'Rating',
     numeric: true,
     disablePadding: false,
@@ -146,6 +168,13 @@ const headCells = [
     numeric: true,
     disablePadding: false,
     label: 'Last Viewing',
+    align: 'right'
+  },
+  {
+    id: 'Watchtimes',
+    numeric: true,
+    disablePadding: false,
+    label: 'Watchtimes',
     align: 'right'
   },
 ];
@@ -170,7 +199,7 @@ function EnhancedTableHead(props) {
           >
             <TableSortLabel
               active={orderBy === headCell.id}
-              direction={orderBy === headCell.id ? order : 'asc'}
+              direction={orderBy === headCell.id ? order : 'desc'}
               onClick={createSortHandler(headCell.id)}
             >
               {headCell.label}
@@ -194,8 +223,8 @@ export default function MovieList({ movies }) {
   const [orderBy, setOrderBy] = React.useState('Rating');
 
   const handleRequestSort = (event, property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
+    const isDesc = orderBy === property && order === 'desc';
+    setOrder(isDesc ? 'asc' : 'desc');
     setOrderBy(property);
   };
 
@@ -212,17 +241,6 @@ export default function MovieList({ movies }) {
     <TableContainer component={Paper}>
       <Table stickyHeader sx={{ width: '50ch', maxWidth: '50ch' }} aria-label="simple table">
 
-        {/* 
-        <TableHead>
-          <TableRow>
-            <TableCell align="right">Name</TableCell>
-            <TableCell align="right">Rating&nbsp;(0-10)</TableCell>
-            <TableCell align="right">Last Watch</TableCell>
-            <TableCell sx={{ width: '3ch' }}></TableCell>
-          </TableRow>
-        </TableHead>
-        */}
-
         <EnhancedTableHead
           order={order}
           orderBy={orderBy}
@@ -231,14 +249,10 @@ export default function MovieList({ movies }) {
         <TableBody>
           {stableSort(movies, getComparator(order, orderBy))
             .map((m, i) => {
-              return (<Row key={i} row={m} />
+              return (<Row key={`movies${i}`} row={m} />
               )
             })}
-          {/* 
-          {movies.map((m, i) =>
-            <Row key={i} row={m} />
-          )}
-           */}
+
         </TableBody>
       </Table>
     </TableContainer >

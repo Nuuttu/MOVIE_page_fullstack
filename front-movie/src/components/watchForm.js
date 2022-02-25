@@ -22,15 +22,12 @@ import DesktopDatePicker from '@mui/lab/DesktopDatePicker';
 
 import React, { useState } from 'react';
 import { DateRange } from '@mui/icons-material';
+import movieService from '../services/movieservice';
 
-export default function MovieForm(props) {
+export default function WatchForm(props) {
   const [open, setOpen] = React.useState(false);
   const [checked, setChecked] = React.useState(false)
-  const [newMovie, setNewMovie] = useState({
-    Name: '',
-    Year: '',
-    Review: '',
-    Rating: 0,
+  const [newWatch, setNewWatch] = useState({
     Date: null,
     Place: '',
     Note: '',
@@ -42,125 +39,66 @@ export default function MovieForm(props) {
 
   const handleClose = () => {
     setOpen(false);
-  };
-
-  const handleEmpty = () => {
-    setNewMovie(
+    setNewWatch(
       {
-        Name: '',
-        Year: '',
-        Review: '',
-        Rating: 0,
         Date: null,
         Place: '',
         Note: '',
       }
     )
-  }
-
-
+  };
 
   const handleChange = (prop) => (event) => {
-    setNewMovie({ ...newMovie, [prop]: event.target.value });
+    setNewWatch({ ...newWatch, [prop]: event.target.value });
   };
 
   const handleDateChange = (newDate) => {
-    setNewMovie({ ...newMovie, Date: newDate })
+    setNewWatch({ ...newWatch, Date: newDate })
   }
 
   const handleDateSwitchChange = (event) => {
     setChecked(event.target.checked);
-    setNewMovie({ ...newMovie, Date: null })
+    setNewWatch({ ...newWatch, Date: null })
   }
 
-  const handleYearChange = (e) => {
-    setNewMovie({ ...newMovie, Year: parseInt(e.target.value) })
-  }
-
-
-  const handleAdd = () => {
+  const handleAdd = (id) => {
     setOpen(false);
-    console.log('newmovie', newMovie)
-    props.addMovie(newMovie)
-    setNewMovie(
+    console.log('newWatch', newWatch)
+    addViewing()
+    setNewWatch(
       {
-        Name: '',
-        Year: '',
-        Review: '',
-        Rating: 0,
         Date: null,
         Place: '',
         Note: '',
       }
     )
+
+  }
+
+  const addViewing = async () => {
+    const rViewing = await movieService.addViewing(newWatch, props.movie.Id)
+    console.log('Viewing added ', rViewing)
   }
 
   return (
     <div>
-      <IconButton color="inherit" onClick={() => handleClickOpen()}><AddCircleOutlineIcon sx={{ fontSize: 50 }} /></IconButton>
+      <IconButton color="inherit" onClick={() => handleClickOpen()}><AddCircleOutlineIcon sx={{ fontSize: 20 }} /></IconButton>
 
       <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>New Movie</DialogTitle>
+        <DialogTitle>New Watch</DialogTitle>
         <DialogContent>
           <Box>
             <Box sx={{ width: '60ch' }}>
               <Box sx={{
                 display: 'flex',
               }}>
-                <TextField
-                  sx={{ flexGrow: 2, marginRight: '1ch' }}
-                  required
-                  margin='normal'
-                  value={newMovie.Name}
-                  onChange={handleChange('Name')}
-                  id="name"
-                  label="Name"
-                  variant="outlined" />
-                <TextField
-                  type='number'
-                  margin='normal'
-                  value={newMovie.Year}
-                  onChange={handleYearChange}
-                  id="Year"
-                  label="Year"
-                  variant="outlined" />
-              </Box>
-              <TextField
-                fullWidth
-                multiline
-                maxRows={8}
-                type='text'
-                margin='normal'
-                value={newMovie.Review}
-                onChange={handleChange('Review')}
-                id="Review"
-                label="Review"
-                variant="outlined" />
-              <Typography id="Rating" gutterBottom>
-                Rating
-              </Typography>
-              <Slider
-                required
-                sx={{ marginTop: '3ch', marginBottom: '2ch' }}
-                color='primary'
-                aria-label="Rating"
-                // defaultValue={3}
-                value={newMovie.Rating}
-                onChange={handleChange('Rating')}
-                valueLabelDisplay="on"
-                step={1}
-                //marks
-                min={0}
-                max={10}
-              />
 
-              <div>
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
                   <DesktopDatePicker
                     disabled={checked}
                     label="Date of the Watch"
                     inputFormat="MM/dd/yyyy"
-                    value={newMovie.Date}
+                    value={newWatch.Date}
                     onChange={handleDateChange}
                     renderInput={(params) => <TextField {...params} />}
                   />
@@ -169,11 +107,11 @@ export default function MovieForm(props) {
                   control={<Switch checked={checked} onChange={handleDateSwitchChange} />}
                   label="Can't Remember"
                   labelPlacement="start" />
-              </div>
+              </Box>
               <TextField
                 fullWidth
                 margin='normal'
-                value={newMovie.Place}
+                value={newWatch.Place}
                 onChange={handleChange('Place')}
                 id="Place"
                 label="Place"
@@ -184,7 +122,7 @@ export default function MovieForm(props) {
                 maxRows={6}
                 type='text'
                 margin='normal'
-                value={newMovie.Note}
+                value={newWatch.Note}
                 onChange={handleChange('Note')}
                 id="Note"
                 label="Note"
@@ -197,8 +135,7 @@ export default function MovieForm(props) {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => handleAdd()} variant="contained">Add Movie</Button>
-          <Button onClick={handleEmpty} variant="text" color="error" size="small">Empty</Button>
+          <Button onClick={() => handleAdd()} variant="contained">Add Viewing</Button>
           <Button onClick={handleClose} variant="text" color="error" >Cancel</Button>
         </DialogActions>
       </Dialog>
