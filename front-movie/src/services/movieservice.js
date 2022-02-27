@@ -19,6 +19,16 @@ const addMovie = async (movie) => {
   return response.data
 }
 
+const editMovie = async (movie, id) => {
+  console.log('editting movie')
+  const headers = {
+    'Content-Type': 'application/json'
+  };
+  const response = await axios.put(baseUrl + `/movies/${id}/edit`, movie, headers)
+
+  return response.data
+}
+
 const addViewing = async (viewing, id) => {
   console.log('adding a viewing')
   const headers = {
@@ -29,6 +39,6 @@ const addViewing = async (viewing, id) => {
   return response.data
 }
 
-const movieService = { getAll, addMovie, addViewing }
+const movieService = { getAll, addMovie, addViewing, editMovie }
 
 export default movieService

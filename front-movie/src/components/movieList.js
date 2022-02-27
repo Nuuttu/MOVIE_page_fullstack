@@ -25,6 +25,27 @@ import Tooltip from '@mui/material/Tooltip';
 import Toolbar from '@mui/material/Toolbar';
 import { alpha } from '@mui/material/styles';
 import WatchForm from './watchForm';
+import MoviePopover from './moviePopover';
+
+function EditableCell(props) {
+
+  const { row, prop } = props;
+  const [open, setOpen] = React.useState(false);
+
+  const handleDoubleClick = (prop) => (event) => {
+    console.log('double clicked', prop, row)
+  }
+
+
+
+  return (
+    <React.Fragment>
+      <TableCell component="th" scope="row" onDoubleClick={handleDoubleClick(prop)}>
+        {prop}
+      </TableCell>
+    </React.Fragment>
+  )
+}
 
 function Row(props) {
   const { row } = props;
@@ -35,15 +56,33 @@ function Row(props) {
     return String(d.getDate()).padStart(2, '0') + "." + String(d.getMonth() + 1).padStart(2, '0') + "." + d.getFullYear()
   }
 
+  /* 
+    cell - OnDoubleClick -> row.event.target -> openEditField(row) -> yes/no buttons
+  */
+
+  /* 
+    const handleChange = (prop) => (event) => {
+      setNewMovie({ ...newMovie, [prop]: event.target.value });
+    };
+     */
   return (
     <React.Fragment>
       <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
-
+        <MoviePopover row={row} prop='Name' align="left" />
+        <MoviePopover row={row} prop='Year' align="right" />
+        <MoviePopover row={row} prop='Rating' align="right" />
+        {/* <EditableCell row={row} prop={row.Name} />
+        <EditableCell row={row} prop={row.Year} />
+        <EditableCell row={row} prop={row.Rating} /> */}
+        {/* 
         <TableCell component="th" scope="row">
           {row.Name}
         </TableCell>
+         
+        
         <TableCell align="right">{row.Year}</TableCell>
         <TableCell align="right">{row.Rating}</TableCell>
+        */}
         {row.Watches !== null ?
           <TableCell align="right">
             {row.LastViewing > 0 ?
@@ -59,6 +98,7 @@ function Row(props) {
           : <TableCell align="right">-</TableCell>
         }
         <TableCell width={2}>
+
           <IconButton
             aria-label="expand row"
             size="small"

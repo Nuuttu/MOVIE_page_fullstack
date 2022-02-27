@@ -108,6 +108,7 @@ export default function MovieForm(props) {
                 display: 'flex',
               }}>
                 <TextField
+                  autoFocus
                   sx={{ flexGrow: 2, marginRight: '1ch' }}
                   required
                   margin='normal'

@@ -67,6 +67,8 @@ func nothing(w http.ResponseWriter, r *http.Request) {
 func movies(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Movies gotten")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,access-control-allow-origin, access-control-allow-headers")
+	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET")
 
 	json.NewEncoder(w).Encode(movieList)
 }
@@ -76,6 +78,7 @@ func addMovie(w http.ResponseWriter, r *http.Request) {
 	//w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,access-control-allow-origin, access-control-allow-headers")
+	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, POST")
 
 	if r.Method == "POST" {
 
@@ -118,6 +121,7 @@ func (movie *Movie) setId() {
 func addViewing(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,access-control-allow-origin, access-control-allow-headers")
+	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, POST")
 
 	if r.Method == "POST" {
 
@@ -180,6 +184,7 @@ func logRequest(h http.Handler) http.Handler {
 func editMovie(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,access-control-allow-origin, access-control-allow-headers")
+	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, PUT")
 
 	if r.Method == "PUT" {
 
@@ -195,7 +200,6 @@ func editMovie(w http.ResponseWriter, r *http.Request) {
 
 			var newMovie EditMovie
 			json.Unmarshal(reqBody, &newMovie)
-			fmt.Println("noew mvoie", newMovie.Name)
 
 			mxidm, _ := xid.FromString(id)
 			movieIndex, _ := getMovieIndexFromList(mxidm)
