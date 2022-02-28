@@ -8,7 +8,6 @@ GET http://localhost:10000/Coffee/7504504064263669287
 ###
 GET http://localhost:10000/movies/
 
-
 ###
 
 # @name createMovie
@@ -27,13 +26,30 @@ Content-Type: application/json
 }
 
 ###
+
+POST http://localhost:10000/movies/add
+Content-Type: application/json
+
+{
+  "Name": "r", 
+  "Year": {{$randomInt 1900 2022}},
+  "Rating": {{$randomInt 0 10}},
+  "Review": "Review Review Review Review Review Review Review Review Review Review Review Review Review Review. Review Review Review Review Review Review Review Review...",
+  "Date": "{{$localDatetime iso8601 -2 y}}",
+  "Place": "Some Theater",
+  "Note": "note was not finished"
+}
+
+###
+GET http://localhost:10000/movies/{{movieId}}
+###
 @movieId = {{createMovie.response.body.$.Id}}
 
 # @name postViewing
 POST http://localhost:10000/movies/{{movieId}}/viewing/add HTTP/1.1
 Content-Type: application/json
 
-{
+{ 
   "Date": "{{$localDatetime iso8601 -2 y}}",
   "Place": "Some Theater {{$randomInt 0 199}}",
   "Note": "note {{$randomInt 0 199}} was not finished"
@@ -54,6 +70,7 @@ Content-Type: application/json
 }
 
 ###
+
 DELETE ttp://localhost:10000/coffee/delete/4751997750760398000
 ###
 POST http://localhost:10000/Coffee

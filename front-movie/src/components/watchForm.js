@@ -24,7 +24,12 @@ import React, { useState } from 'react';
 import { DateRange } from '@mui/icons-material';
 import movieService from '../services/movieservice';
 
+import { getAll, addViewing } from '../reducers/movieReducer';
+import { useDispatch } from "react-redux"
+
 export default function WatchForm(props) {
+  const dispatch = useDispatch()
+
   const [open, setOpen] = React.useState(false);
   const [checked, setChecked] = React.useState(false)
   const [newWatch, setNewWatch] = useState({
@@ -64,7 +69,7 @@ export default function WatchForm(props) {
   const handleAdd = (id) => {
     setOpen(false);
     console.log('newWatch', newWatch)
-    addViewing()
+    dispatch(addViewing(newWatch, props.movie.Id))
     setNewWatch(
       {
         Date: null,
@@ -72,13 +77,14 @@ export default function WatchForm(props) {
         Note: '',
       }
     )
-
+    //dispatch(getAll())
   }
 
-  const addViewing = async () => {
-    const rViewing = await movieService.addViewing(newWatch, props.movie.Id)
-    console.log('Viewing added ', rViewing)
-  }
+  /* 
+    const addViewing = async () => {
+      const rViewing = await movieService.addViewing(newWatch, props.movie.Id)
+      console.log('Viewing added ', rViewing)
+    } */
 
   return (
     <div>

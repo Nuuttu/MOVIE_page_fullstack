@@ -11,29 +11,30 @@ import (
 	"time"
 
 	"github.com/darahayes/go-boom"
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 	"github.com/rs/xid"
 )
 
 type Movie struct {
 	Id       xid.ID    `json:"Id"`
-	Name     string    `json:"Name"`
-	Year     int       `json:"Year"`
-	Rating   int       `json:"Rating"`
-	Review   string    `json:"Review"`
+	Name     string    `json:"Name" validate:"required,min=2,max=169"`
+	Year     int       `json:"Year" validate:"numeric,gte=1900,lte=2100"`
+	Rating   int       `json:"Rating" validate:"numeric,gte=0,lte=10"`
+	Review   string    `json:"Review" validate:"min=0,max=16900"`
 	Watches  []Watch   `json:"Watches"`
 	Comments []Comment `json:"Comments"`
 }
 
 type EditMovie struct {
-	Name   string `json:"Name"`
-	Year   int    `json:"Year"`
-	Rating int    `json:"Rating"`
-	Review string `json:"Review"`
+	Name   string `json:"Name" validate:"required,min=2,max=169"`
+	Year   int    `json:"Year" validate:"numeric,gte=1900,lte=2100"`
+	Rating int    `json:"Rating" validate:"numeric,gte=0,lte=10"`
+	Review string `json:"Review" validate:"min=0,max=16900"`
 }
 
 type Watch struct {
-	Date  time.Time `json:"Date"`
+	Date  time.Time `json:"Date" validate:"datetime"`
 	Place string    `json:"Place"`
 	Note  string    `json:"Note"`
 }
@@ -46,6 +47,8 @@ type Comment struct {
 }
 
 var movieList []Movie
+
+var validate *validator.Validate
 
 func toLowerCase(h http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
@@ -65,11 +68,12 @@ func nothing(w http.ResponseWriter, r *http.Request) {
 }
 
 func movies(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Movies gotten")
+	fmt.Println("Movies sent")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,access-control-allow-origin, access-control-allow-headers")
 	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET")
 
+	w.Header().Add("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(movieList)
 }
 
@@ -82,10 +86,17 @@ func addMovie(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 
+		validate = validator.New()
+
 		reqBody, _ := ioutil.ReadAll(r.Body)
 		fmt.Println("reqBody ", string(reqBody))
 		var newMovie Movie
 		json.Unmarshal(reqBody, &newMovie)
+		err := validate.Struct(newMovie)
+		if err != nil {
+			boom.BadRequest(w, "Movie not validated")
+			return
+		}
 		fmt.Printf("new Movie:\n{\n Name: %s,\n Year: %d\n Rating: %d\n Review: %s\n}\n", newMovie.Name, newMovie.Year, newMovie.Rating, newMovie.Review)
 		newMovie.setId()
 		var newWatch Watch
@@ -125,6 +136,8 @@ func addViewing(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 
+		validate = validator.New()
+
 		vars := mux.Vars(r)
 		id := vars["id"]
 
@@ -137,6 +150,12 @@ func addViewing(w http.ResponseWriter, r *http.Request) {
 			var newWatch Watch
 			json.Unmarshal(reqBody, &newWatch)
 
+			/* Tää ei toimi näin Time.time ei toimi validoiniissa näin
+			err := validate.Struct(newWatch)
+			if err != nil {
+				boom.BadRequest(w, "Watch details not validated")
+			}
+			*/
 			mxidm, _ := xid.FromString(id)
 			movieIndex, _ := getMovieIndexFromList(mxidm)
 
@@ -188,6 +207,8 @@ func editMovie(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "PUT" {
 
+		validate = validator.New()
+
 		vars := mux.Vars(r)
 		id := vars["id"]
 		fmt.Printf("PUT ID: %s\n", id)
@@ -200,7 +221,11 @@ func editMovie(w http.ResponseWriter, r *http.Request) {
 
 			var newMovie EditMovie
 			json.Unmarshal(reqBody, &newMovie)
-
+			err := validate.Struct(newMovie)
+			if err != nil {
+				boom.BadRequest(w, "Editing details not validated")
+				return
+			}
 			mxidm, _ := xid.FromString(id)
 			movieIndex, _ := getMovieIndexFromList(mxidm)
 
@@ -214,6 +239,32 @@ func editMovie(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(movieList[movieIndex])
 
 		}
+	}
+}
+
+func getMovieById(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,access-control-allow-origin, access-control-allow-headers")
+	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET")
+
+	vars := mux.Vars(r)
+	id := vars["id"]
+	fmt.Printf("GET ID: %s\n", id)
+
+	if !containsMovieById(movieList, id) {
+		boom.BadRequest(w, "No Movie by that ID")
+	} else {
+		reqBody, _ := ioutil.ReadAll(r.Body)
+		fmt.Println("reqBody ", string(reqBody))
+
+		mxidm, _ := xid.FromString(id)
+		movieIndex, _ := getMovieIndexFromList(mxidm)
+
+		fmt.Println("movielist index movie: ", movieList[movieIndex].Name)
+
+		w.Header().Add("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(movieList[movieIndex])
+
 	}
 }
 
@@ -233,6 +284,7 @@ func handleRequests() {
 	router.HandleFunc("/movies/add", addMovie).Methods("POST", "OPTIONS")
 	router.HandleFunc("/movies/{id}/viewing/add", addViewing).Methods("POST", "OPTIONS")
 	router.HandleFunc("/movies/{id}/edit", editMovie).Methods("PUT", "OPTIONS")
+	router.HandleFunc("/movies/{id}", getMovieById).Methods("GET", "OPTIONS")
 	/*
 		originsOk := handlers.AllowedOrigins([]string{"http://localhost:3000"})
 		headersOk := handlers.AllowedHeaders([]string{"X-Requested-With", "Access-Control-Allow-Origin: *"})

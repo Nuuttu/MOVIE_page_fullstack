@@ -16,14 +16,19 @@ import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 
+import { editMovie, getAll } from '../reducers/movieReducer';
+import { useDispatch, useSelector } from "react-redux"
 
-import movieService from '../services/movieservice';
+const MoviePopover = (props) => {
 
-export default function MoviePopover(props) {
+  const dispatch = useDispatch()
 
   const { row, prop, align } = props;
+
+  //const editingMovies = useSelector(state => state.movies)
+
   const [anchorEl, setAnchorEl] = React.useState(null);
-  const [editMovie, setEditMovie] = useState({
+  const [editingMovie, setEditingMovie] = useState({
     Name: row.Name,
     Year: row.Year,
     Review: row.Review,
@@ -31,6 +36,12 @@ export default function MoviePopover(props) {
   })
 
   const handleOpen = (event) => {
+    setEditingMovie({
+      Name: row.Name,
+      Year: row.Year,
+      Review: row.Review,
+      Rating: row.Rating
+    })
     setAnchorEl(event.currentTarget);
   };
 
@@ -39,13 +50,21 @@ export default function MoviePopover(props) {
   };
 
   const handleChange = (prop) => (event) => {
-    setEditMovie({ ...editMovie, [prop]: event.target.value });
+    setEditingMovie({ ...editingMovie, [prop]: event.target.value });
   };
 
   const handleAdd = () => {
     handleClose()
-    editMovie.Year = parseInt(editMovie.Year)
-    movieService.editMovie(editMovie, row.Id)
+    editingMovie.Year = parseInt(editingMovie.Year)
+    dispatch(editMovie(editingMovie, row.Id))
+    setEditingMovie({
+      Name: row.Name,
+      Year: row.Year,
+      Review: row.Review,
+      Rating: row.Rating
+    })
+    dispatch(getAll())
+    //movieService.editMovie(editMovie, row.Id)
   }
 
   const open = Boolean(anchorEl);
@@ -79,7 +98,7 @@ export default function MoviePopover(props) {
               sx={{ marginTop: '3ch', marginBottom: '2ch' }}
               color='primary'
               aria-label="Rating"
-              value={editMovie.Rating}
+              value={editingMovie.Rating}
               onChange={handleChange('Rating')}
               valueLabelDisplay="on"
               step={1}
@@ -120,7 +139,7 @@ export default function MoviePopover(props) {
               sx={{ flexGrow: 2, marginRight: '1ch' }}
               required
               margin='normal'
-              value={editMovie[prop]}
+              value={editingMovie[prop]}
               onChange={handleChange(prop)}
               id={prop}
               label={prop}
@@ -135,3 +154,5 @@ export default function MoviePopover(props) {
     );
   }
 }
+
+export default MoviePopover

@@ -20,7 +20,6 @@ const addMovie = async (movie) => {
 }
 
 const editMovie = async (movie, id) => {
-  console.log('editting movie')
   const headers = {
     'Content-Type': 'application/json'
   };

@@ -23,7 +23,15 @@ import DesktopDatePicker from '@mui/lab/DesktopDatePicker';
 import React, { useState } from 'react';
 import { DateRange } from '@mui/icons-material';
 
-export default function MovieForm(props) {
+import { addMovie, getAll } from '../reducers/movieReducer';
+import { useDispatch } from "react-redux"
+
+
+const MovieForm = (props) => {
+
+
+  const dispatch = useDispatch()
+
   const [open, setOpen] = React.useState(false);
   const [checked, setChecked] = React.useState(false)
   const [newMovie, setNewMovie] = useState({
@@ -81,7 +89,9 @@ export default function MovieForm(props) {
   const handleAdd = () => {
     setOpen(false);
     console.log('newmovie', newMovie)
-    props.addMovie(newMovie)
+    dispatch(addMovie(newMovie))
+
+    // props.addMovie(newMovie)
     setNewMovie(
       {
         Name: '',
@@ -206,3 +216,5 @@ export default function MovieForm(props) {
     </div>
   )
 }
+
+export default MovieForm

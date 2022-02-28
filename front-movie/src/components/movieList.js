@@ -24,8 +24,10 @@ import { visuallyHidden } from '@mui/utils';
 import Tooltip from '@mui/material/Tooltip';
 import Toolbar from '@mui/material/Toolbar';
 import { alpha } from '@mui/material/styles';
-import WatchForm from './watchForm';
-import MoviePopover from './moviePopover';
+import WatchForm from './WatchForm';
+import MoviePopover from './MoviePopover';
+
+import { useSelector } from 'react-redux'
 
 function EditableCell(props) {
 
@@ -56,15 +58,6 @@ function Row(props) {
     return String(d.getDate()).padStart(2, '0') + "." + String(d.getMonth() + 1).padStart(2, '0') + "." + d.getFullYear()
   }
 
-  /* 
-    cell - OnDoubleClick -> row.event.target -> openEditField(row) -> yes/no buttons
-  */
-
-  /* 
-    const handleChange = (prop) => (event) => {
-      setNewMovie({ ...newMovie, [prop]: event.target.value });
-    };
-     */
   return (
     <React.Fragment>
       <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
@@ -257,7 +250,9 @@ function EnhancedTableHead(props) {
   );
 }
 
-export default function MovieList({ movies }) {
+export default function MovieList() {
+
+  const movies = useSelector(state => state.movies)
 
   const [order, setOrder] = React.useState('desc');
   const [orderBy, setOrderBy] = React.useState('Rating');
