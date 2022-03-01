@@ -2,19 +2,14 @@ import React, { useState, useEffect, useRef } from 'react'
 
 import Popover from '@mui/material/Popover';
 import Typography from '@mui/material/Typography';
-
 import Box from '@mui/material/Box';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
-
 import Slider from '@mui/material/Slider';
 import TextField from '@mui/material/TextField';
-
 import DialogActions from '@mui/material/DialogActions';
-import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
-import ClickAwayListener from '@mui/material/ClickAwayListener';
+
+import ReactMarkdown from 'react-markdown'
 
 import { editMovie, getAll } from '../reducers/movieReducer';
 import { useDispatch, useSelector } from "react-redux"
@@ -70,32 +65,81 @@ const MoviePopover = (props) => {
   const open = Boolean(anchorEl);
   const id = open ? 'movie-popper' : undefined;
 
-  if (prop === 'Rating') {
-    return (
 
-      < React.Fragment >
+  return (
+    <React.Fragment>
+      {prop === 'Review' ?
+        <Typography paragraph onDoubleClick={handleOpen} variant='body2' gutterBottom component="div" sx={{ whiteSpace: 'pre-line', maxWidth: '77ch', padding: '20px' }}>
+          {row.Review}
+        </Typography>
+        :
         <TableCell align={align} aria-describedby={id} onDoubleClick={handleOpen}>
           {row[prop]}
         </TableCell>
+      }
 
-        <Popover
-          id={id}
-          open={open}
-          anchorEl={anchorEl}
-          sx={{ zIndex: 1500 }}
-          onClose={handleClose}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'left',
-          }}
-        >
+      <Popover
+        id={id}
+        open={open}
+        anchorEl={anchorEl}
+        sx={{ zIndex: 1500 }}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+      >
+        {/* <PropSwitch p={prop} /> */}
+        {prop === 'Name' &&
           <Box sx={{ border: 1, p: 1, bgcolor: 'background.paper' }}>
+            <TextField
+              autoFocus
+              placeholder={prop}
+              sx={{ flexGrow: 2, marginRight: '1ch' }}
+              required
+              margin='normal'
+              value={editingMovie[prop]}
+              onChange={handleChange(prop)}
+              id={prop}
+              label={prop}
+              variant="outlined" />
+
+            <DialogActions>
+              <Button onClick={() => handleAdd()} variant="contained">Edit {prop}</Button>
+              <Button onClick={handleClose} variant="text" color="error" >Cancel</Button>
+            </DialogActions>
+          </Box>
+        }
+        {prop === 'Year' &&
+          <Box sx={{ border: 1, p: 1, bgcolor: 'background.paper' }}>
+            <TextField
+              autoFocus
+              type='number'
+              placeholder={prop}
+              sx={{ flexGrow: 2, marginRight: '1ch' }}
+              required
+              margin='normal'
+              value={editingMovie[prop]}
+              onChange={handleChange(prop)}
+              id={prop}
+              label={prop}
+              variant="outlined" />
+
+            <DialogActions>
+              <Button onClick={() => handleAdd()} variant="contained">Edit {prop}</Button>
+              <Button onClick={handleClose} variant="text" color="error" >Cancel</Button>
+            </DialogActions>
+          </Box>
+        }
+        {prop === 'Rating' &&
+          <Box sx={{ width: '40ch', border: 1, p: 1, bgcolor: 'background.paper', display: 'block', align: 'center' }}>
             <Typography id="Rating" gutterBottom>
               Rating
             </Typography>
             <Slider
               required
-              sx={{ marginTop: '3ch', marginBottom: '2ch' }}
+              //sx={{ marginTop: '3ch', marginBottom: '2ch', marginLeft: '2ch', marginRight: '2ch' }}
+              sx={{ marginTop: '3ch', marginBottom: '2ch', marginLeft: '8%', marginRight: '8%', width: '84%', alignSelf: 'center' }}
               color='primary'
               aria-label="Rating"
               value={editingMovie.Rating}
@@ -110,33 +154,16 @@ const MoviePopover = (props) => {
               <Button onClick={handleClose} variant="text" color="error" >Cancel</Button>
             </DialogActions>
           </Box>
-        </Popover>
-      </React.Fragment >
-    )
-  } else {
-
-    return (
-      <React.Fragment>
-        <TableCell align={align} aria-describedby={id} onDoubleClick={handleOpen}>
-          {row[prop]}
-        </TableCell>
-
-        <Popover
-          id={id}
-          open={open}
-          anchorEl={anchorEl}
-          sx={{ zIndex: 1500 }}
-          onClose={handleClose}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'left',
-          }}
-        >
+        }
+        {prop === 'Review' &&
           <Box sx={{ border: 1, p: 1, bgcolor: 'background.paper' }}>
             <TextField
               autoFocus
+              fullWidth
+              multiline
+              maxRows={8}
               placeholder={prop}
-              sx={{ flexGrow: 2, marginRight: '1ch' }}
+              sx={{ width: '70ch', flexGrow: 2, marginRight: '1ch' }}
               required
               margin='normal'
               value={editingMovie[prop]}
@@ -149,10 +176,13 @@ const MoviePopover = (props) => {
               <Button onClick={handleClose} variant="text" color="error" >Cancel</Button>
             </DialogActions>
           </Box>
-        </Popover>
-      </React.Fragment>
-    );
-  }
+        }
+
+
+      </Popover>
+    </React.Fragment >
+  );
 }
+
 
 export default MoviePopover

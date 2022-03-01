@@ -12,6 +12,7 @@ import Notification from './components/Notification'
 
 import { getAll } from './reducers/movieReducer'
 
+import ReactMarkdown from 'react-markdown'
 
 function App() {
   //const [movies, setMovies] = useState([])
@@ -33,14 +34,16 @@ function App() {
 
   return (
     <div className="App">
+
+      <Notification />
       <header className="App-header">
+        <ReactMarkdown>*React-Markdown* is **Awesome**</ReactMarkdown>
         <div>
           <p className="App-logo">Tuomo's Movie List</p>
-          <Notification />
+          {/* <Notification /> */}
 
           {!loading ?
             <div>
-              {/* <MovieForm addMovie={addMovie} /> */}
               <MovieForm />
               <MovieList />
             </div>
@@ -49,6 +52,7 @@ function App() {
           }
         </div>
       </header>
+
       <Types />
     </div>
   );

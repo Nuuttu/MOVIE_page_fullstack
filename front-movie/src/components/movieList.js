@@ -90,7 +90,7 @@ function Row(props) {
           <TableCell align="right">{row.Watchtimes}</TableCell>
           : <TableCell align="right">-</TableCell>
         }
-        <TableCell width={2}>
+        <TableCell /* width={2} */>
 
           <IconButton
             aria-label="expand row"
@@ -105,14 +105,17 @@ function Row(props) {
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={open} timeout="auto" unmountOnExit>
-            <Box sx={{ margin: 1 }}>
+            <Box sx={{ margin: 0 }}>
 
               <Typography align='center' variant="h5" gutterBottom component="div">
                 Review
               </Typography>
-              <Typography variant='body2' gutterBottom component="div">
+              <MoviePopover row={row} prop='Review' align="right" />
+              {/* 
+              <Typography variant='body2' gutterBottom component="div" sx={{ maxWidth: '77ch', padding: '20px' }}>
                 {row.Review}
-              </Typography>
+              </Typography> 
+ */} {/* MITÄ PITÄISI TEHDÄ TÄLLE kun TABLEHEAD hyppii, kun tämä osa vaihtelee leveyden kanssa. .. .. . ...  */}
               <Divider variant='fullWidth' ><Box display='flex' flexDirection='row' alignItems='center'><Typography variant='h6'>Watches</Typography><WatchForm movie={row} /></Box></Divider>
               <Table size="small" aria-label="watches">
                 <TableHead>
@@ -178,37 +181,37 @@ const headCells = [
   {
     id: 'Name',
     numeric: false,
-    disablePadding: true,
+    disablePadding: false,
     label: 'Name',
-    align: 'center'
+    align: 'center',
   },
   {
     id: 'Year',
     numeric: true,
     disablePadding: false,
     label: 'Year',
-    align: 'right'
+    align: 'right',
   },
   {
     id: 'Rating',
     numeric: true,
     disablePadding: false,
     label: 'Rating',
-    align: 'right'
+    align: 'right',
   },
   {
     id: 'LastViewing',
     numeric: true,
     disablePadding: false,
     label: 'Last Viewing',
-    align: 'right'
+    align: 'right',
   },
   {
     id: 'Watchtimes',
     numeric: true,
     disablePadding: false,
     label: 'Watchtimes',
-    align: 'right'
+    align: 'right',
   },
 ];
 
@@ -220,7 +223,7 @@ function EnhancedTableHead(props) {
   };
 
   return (
-    <TableHead>
+    <TableHead >
       <TableRow>
         {headCells.map((headCell) => (
           <TableCell
@@ -244,7 +247,6 @@ function EnhancedTableHead(props) {
             </TableSortLabel>
           </TableCell>
         ))}
-
       </TableRow>
     </TableHead>
   );
@@ -274,7 +276,7 @@ export default function MovieList() {
   if (movies != null) return (
 
     <TableContainer component={Paper}>
-      <Table stickyHeader sx={{ width: '50ch', maxWidth: '50ch' }} aria-label="simple table">
+      <Table stickyHeader sx={{ width: '86ch', maxWidth: '86ch' }} aria-label="simple table">
 
         <EnhancedTableHead
           order={order}
@@ -294,12 +296,3 @@ export default function MovieList() {
   )
 }
 
-
-/* 
-              <TableCell align="right">
-                {c.RoastLevel}
-              </TableCell>
-              <TableCell align="right">
-                <IconButton color="inherit" onClick={() => handleDeleteClick(c)}><DeleteIcon /></IconButton>
-              </TableCell> 
-              */

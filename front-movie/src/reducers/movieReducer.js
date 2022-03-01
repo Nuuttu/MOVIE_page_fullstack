@@ -31,18 +31,19 @@ export const getAll = () => {
 export const addMovie = (movie) => {
   return async dispatch => {
     try {
-      const newMovie = await movieService.addMovie(movie)
-      console.log('new Movie added:', newMovie)
+      const response = await movieService.addMovie(movie)
+
+      console.log('new Movie added:', response)
       dispatch({
         type: 'ADD',
-        data: newMovie
+        data: response
       })
-      dispatch(setNotification(`added a movie - ${movie.Name} - successfully.`, 'success', 4))
+      dispatch(setNotification(`added a movie - ${movie.Name} - successfully.`, 'success', 7))
 
       dispatch(getAll()) // need better method
     } catch (error) {
       console.log('fail', error)
-      dispatch(setNotification(`failed to save a movie. << ${error} >>`, 'error', 4))
+      dispatch(setNotification(`failed to save a movie. << ${error.response.data.message} >>`, 'error', 7))
     }
   }
 }
@@ -57,11 +58,11 @@ export const editMovie = (movie, id) => {
         type: 'EDIT',
         data: newMovie
       })
-      dispatch(setNotification(`edited a movie - ${movie.Name} - successfully.`, 'success', 4))
+      dispatch(setNotification(`edited a movie - ${movie.Name} - successfully.`, 'success', 7))
       dispatch(getAll()) // need better method
     } catch (error) {
       console.log('fail', error)
-      dispatch(setNotification(`failed to edit a movie. << ${error} >>`, 'error', 4))
+      dispatch(setNotification(`failed to edit a movie. << ${error.response.data.message} >>`, 'error', 7))
     }
   }
 }
@@ -75,11 +76,11 @@ export const addViewing = (viewing, id) => {
         type: 'ADD_VIEWING',
         data: newWatch
       })
-      dispatch(setNotification(`Added a viewing for a movie << >>`, 'success', 5))
+      dispatch(setNotification(`Added a viewing for a movie << >>`, 'success', 7))
       dispatch(getAll())
     } catch (error) {
       console.log('fail', error)
-      dispatch(setNotification(`failed to add a viewing. << ${error} >>`, 'error', 4))
+      dispatch(setNotification(`failed to add a viewing. << ${error.response.data.message} >>`, 'error', 7))
     }
   }
 }
