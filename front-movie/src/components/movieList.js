@@ -8,6 +8,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import DeleteIcon from '@mui/icons-material/Delete';
+import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import IconButton from '@mui/material/IconButton';
 import Collapse from '@mui/material/Collapse';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
@@ -16,7 +17,8 @@ import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import TableSortLabel from '@mui/material/TableSortLabel';
 import TablePagination from '@mui/material/TablePagination';
-
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -25,9 +27,14 @@ import Tooltip from '@mui/material/Tooltip';
 import Toolbar from '@mui/material/Toolbar';
 import { alpha } from '@mui/material/styles';
 import WatchForm from './WatchForm';
+import Popover from '@mui/material/Popover';
+import TextField from '@mui/material/TextField';
+
 import MoviePopover from './MoviePopover';
 
 import { useSelector } from 'react-redux'
+import { useDispatch } from "react-redux"
+import { deleteViewing } from '../reducers/movieReducer';
 
 function EditableCell(props) {
 
@@ -49,9 +56,69 @@ function EditableCell(props) {
   )
 }
 
+function WatchPopover(props) {
+
+  const dispatch = useDispatch()
+
+  const { row, w } = props
+  const [anchorEl, setAnchorEl] = React.useState(null);
+
+  const open = Boolean(anchorEl);
+  const id = open ? 'movie-popper' : undefined;
+
+  const handleOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  }
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleDelete = () => {
+    handleClose()
+    dispatch(deleteViewing(w.Id, row))
+  }
+
+  return (
+    <React.Fragment>
+      <IconButton size='small' color="inherit" onClick={handleOpen}>
+        <DeleteOutlinedIcon sx={{ fontSize: 20 }} />
+      </IconButton>
+
+      <Popover
+        id={id}
+        open={open}
+        anchorEl={anchorEl}
+        sx={{ zIndex: 1500 }}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+      >
+        <Box sx={{ margin: '1ch' }}>
+          <Typography variant='h6'>
+            Wanna delete this viewing?
+          </Typography>
+          <DialogActions>
+            <Button onClick={() => handleDelete()} variant="contained">Delete</Button>
+            <Button onClick={handleClose} variant="text" color="error" >Cancel</Button>
+          </DialogActions>
+        </Box>
+      </Popover>
+
+    </React.Fragment>
+  )
+}
+
 function Row(props) {
   const { row } = props;
   const [open, setOpen] = React.useState(false);
+
 
   const dateFormatter = (date) => {
     const d = new Date(date)
@@ -61,9 +128,9 @@ function Row(props) {
   return (
     <React.Fragment>
       <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
-        <MoviePopover row={row} prop='Name' align="left" />
-        <MoviePopover row={row} prop='Year' align="right" />
-        <MoviePopover row={row} prop='Rating' align="right" />
+        <MoviePopover row={row} prop='Name' align="left" twidth={225} />
+        <MoviePopover row={row} prop='Year' align="right" twidth={80} />
+        <MoviePopover row={row} prop='Rating' align="right" twidth={85} />
         {/* <EditableCell row={row} prop={row.Name} />
         <EditableCell row={row} prop={row.Year} />
         <EditableCell row={row} prop={row.Rating} /> */}
@@ -77,18 +144,18 @@ function Row(props) {
         <TableCell align="right">{row.Rating}</TableCell>
         */}
         {row.Watches !== null ?
-          <TableCell align="right">
+          <TableCell align="right" sx={{ width: '130px' }}>
             {row.LastViewing > 0 ?
               //dateFormatter(row.Watches[row.Watches.length - 1].Date)
               dateFormatter(row.Watches[0].Date)
               : '-'
             }
           </TableCell>
-          : <TableCell align="right">-</TableCell>
+          : <TableCell align="right" sx={{ width: '130px' }}>-</TableCell>
         }
         {row.Watchtimes !== null ?
-          <TableCell align="right">{row.Watchtimes}</TableCell>
-          : <TableCell align="right">-</TableCell>
+          <TableCell sx={{ width: '100px' }} align="right">{row.Watchtimes}</TableCell>
+          : <TableCell align="right" sx={{ width: '100px' }}>-</TableCell>
         }
         <TableCell /* width={2} */>
 
@@ -105,9 +172,9 @@ function Row(props) {
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={open} timeout="auto" unmountOnExit>
-            <Box sx={{ margin: 0 }}>
+            <Box sx={{ marginBottom: 1 }}>
 
-              <Typography align='center' variant="h5" gutterBottom component="div">
+              <Typography align='center' variant="h5" gutterBottom component="div" sx={{ marginTop: '1ch' }}>
                 Review
               </Typography>
               <MoviePopover row={row} prop='Review' align="right" />
@@ -123,6 +190,7 @@ function Row(props) {
                     <TableCell align='left'>Date</TableCell>
                     <TableCell align='left'>Place</TableCell>
                     <TableCell align='left'>Note</TableCell>
+                    <TableCell width='20px' align='right'></TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -134,6 +202,9 @@ function Row(props) {
                       }
                       <TableCell>{w.Place}</TableCell>
                       <TableCell>{w.Note}</TableCell>
+                      <TableCell width='20px' align='right'>
+                        <WatchPopover row={row} w={w} />
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -184,6 +255,7 @@ const headCells = [
     disablePadding: false,
     label: 'Name',
     align: 'center',
+    width: '280px'
   },
   {
     id: 'Year',
@@ -191,6 +263,7 @@ const headCells = [
     disablePadding: false,
     label: 'Year',
     align: 'right',
+    width: '80px'
   },
   {
     id: 'Rating',
@@ -198,6 +271,7 @@ const headCells = [
     disablePadding: false,
     label: 'Rating',
     align: 'right',
+    width: '85px'
   },
   {
     id: 'LastViewing',
@@ -205,6 +279,7 @@ const headCells = [
     disablePadding: false,
     label: 'Last Viewing',
     align: 'right',
+    width: '130px'
   },
   {
     id: 'Watchtimes',
@@ -212,6 +287,7 @@ const headCells = [
     disablePadding: false,
     label: 'Watchtimes',
     align: 'right',
+    width: '100px'
   },
 ];
 
@@ -232,6 +308,7 @@ function EnhancedTableHead(props) {
             align={headCell.align}
             padding={headCell.disablePadding ? 'none' : 'normal'}
             sortDirection={orderBy === headCell.id ? order : false}
+            sx={{ width: headCell.width }}
           >
             <TableSortLabel
               active={orderBy === headCell.id}
@@ -258,12 +335,34 @@ export default function MovieList() {
 
   const [order, setOrder] = React.useState('desc');
   const [orderBy, setOrderBy] = React.useState('Rating');
+  const [page, setPage] = React.useState(0);
+  const [dense, setDense] = React.useState(false);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
   const handleRequestSort = (event, property) => {
     const isDesc = orderBy === property && order === 'desc';
     setOrder(isDesc ? 'asc' : 'desc');
     setOrderBy(property);
   };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+
+  const [filterTerm, setFilterTerm] = useState('')
+  const handleFilterChange = (event) => {
+    setFilterTerm(event.target.value)
+  }
+
+  const emptyRows =
+    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - movies.length) : 0;
+
 
   if (movies === null) return (
     <p>No Movies Found!</p>
@@ -274,25 +373,70 @@ export default function MovieList() {
   )
 
   if (movies != null) return (
-
-    <TableContainer component={Paper}>
-      <Table stickyHeader sx={{ width: '86ch', maxWidth: '86ch' }} aria-label="simple table">
-
-        <EnhancedTableHead
-          order={order}
-          orderBy={orderBy}
-          onRequestSort={handleRequestSort}
+    <React.Fragment>
+      <Paper>
+        <Box sx={{ display: 'block' }}>
+          <TextField
+            sx={{ flexGrow: 2, marginRight: '1ch' }}
+            margin='normal'
+            value={filterTerm}
+            onChange={handleFilterChange}
+            id='filternameterm'
+            label='Filter Name'
+            variant="outlined"
+          />
+          <TablePagination
+            rowsPerPageOptions={[10, 25, 100]}
+            component="div"
+            count={movies.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            showFirstButton={true}
+            showLastButton={true}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </Box>
+        <TableContainer /* component={Paper} */>
+          <Table stickyHeader sx={{ width: '86ch', maxWidth: '86ch' }} aria-label="simple table">
+            <EnhancedTableHead
+              order={order}
+              orderBy={orderBy}
+              onRequestSort={handleRequestSort}
+            />
+            <TableBody>
+              {stableSort(movies, getComparator(order, orderBy))
+                .filter(m => (m.Name.toLowerCase()).includes(filterTerm.toLowerCase()))
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((m, i) => {
+                  return (<Row key={`movies${i}`} row={m} />
+                  )
+                })}
+              {emptyRows > 0 && (
+                <TableRow
+                  style={{
+                    height: 69 * emptyRows,
+                  }}
+                >
+                  <TableCell colSpan={6} />
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer >
+        <TablePagination
+          rowsPerPageOptions={[10, 25, 100]}
+          component="div"
+          count={movies.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          showFirstButton={true}
+          showLastButton={true}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
         />
-        <TableBody>
-          {stableSort(movies, getComparator(order, orderBy))
-            .map((m, i) => {
-              return (<Row key={`movies${i}`} row={m} />
-              )
-            })}
-
-        </TableBody>
-      </Table>
-    </TableContainer >
+      </Paper>
+    </React.Fragment>
   )
 }
 

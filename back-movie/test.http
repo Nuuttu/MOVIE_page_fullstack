@@ -56,6 +56,10 @@ Content-Type: application/json
 }
 
 ###
+// @viewingId = {{postViewing.response.body.$.Id}}
+DELETE http://localhost:10000/movies/{{movieId}}/viewing/c8fktv0omshia6100000/delete
+
+###
 @movieName = {{createMovie.response.body.$.Name}}
 
 # @name editMovie
@@ -70,6 +74,27 @@ Content-Type: application/json
 }
 
 ###
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 DELETE ttp://localhost:10000/coffee/delete/4751997750760398000
 ###

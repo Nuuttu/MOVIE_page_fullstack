@@ -9,8 +9,6 @@ import TextField from '@mui/material/TextField';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 
-import ReactMarkdown from 'react-markdown'
-
 import { editMovie, getAll } from '../reducers/movieReducer';
 import { useDispatch, useSelector } from "react-redux"
 
@@ -18,7 +16,7 @@ const MoviePopover = (props) => {
 
   const dispatch = useDispatch()
 
-  const { row, prop, align } = props;
+  const { row, prop, align, twidth } = props;
 
   //const editingMovies = useSelector(state => state.movies)
 
@@ -58,7 +56,7 @@ const MoviePopover = (props) => {
       Review: row.Review,
       Rating: row.Rating
     })
-    dispatch(getAll())
+    //dispatch(getAll())
     //movieService.editMovie(editMovie, row.Id)
   }
 
@@ -73,7 +71,7 @@ const MoviePopover = (props) => {
           {row.Review}
         </Typography>
         :
-        <TableCell align={align} aria-describedby={id} onDoubleClick={handleOpen}>
+        <TableCell sx={{ width: twidth }} align={align} aria-describedby={id} onDoubleClick={handleOpen}>
           {row[prop]}
         </TableCell>
       }
@@ -91,7 +89,7 @@ const MoviePopover = (props) => {
       >
         {/* <PropSwitch p={prop} /> */}
         {prop === 'Name' &&
-          <Box sx={{ border: 1, p: 1, bgcolor: 'background.paper' }}>
+          <Box sx={{ p: 1, bgcolor: 'background.paper' }}>
             <TextField
               autoFocus
               placeholder={prop}
@@ -111,7 +109,7 @@ const MoviePopover = (props) => {
           </Box>
         }
         {prop === 'Year' &&
-          <Box sx={{ border: 1, p: 1, bgcolor: 'background.paper' }}>
+          <Box sx={{ p: 1, bgcolor: 'background.paper' }}>
             <TextField
               autoFocus
               type='number'
@@ -132,7 +130,7 @@ const MoviePopover = (props) => {
           </Box>
         }
         {prop === 'Rating' &&
-          <Box sx={{ width: '40ch', border: 1, p: 1, bgcolor: 'background.paper', display: 'block', align: 'center' }}>
+          <Box sx={{ width: '40ch', p: 1, bgcolor: 'background.paper', display: 'block', align: 'center' }}>
             <Typography id="Rating" gutterBottom>
               Rating
             </Typography>
@@ -156,7 +154,7 @@ const MoviePopover = (props) => {
           </Box>
         }
         {prop === 'Review' &&
-          <Box sx={{ border: 1, p: 1, bgcolor: 'background.paper' }}>
+          <Box sx={{ p: 1, bgcolor: 'background.paper' }}>
             <TextField
               autoFocus
               fullWidth

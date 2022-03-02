@@ -69,7 +69,7 @@ export default function WatchForm(props) {
   const handleAdd = (id) => {
     setOpen(false);
     console.log('newWatch', newWatch)
-    dispatch(addViewing(newWatch, props.movie.Id))
+    dispatch(addViewing(newWatch, props.movie))
     setNewWatch(
       {
         Date: null,
@@ -93,51 +93,44 @@ export default function WatchForm(props) {
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>New Watch</DialogTitle>
         <DialogContent>
-          <Box>
-            <Box sx={{ width: '60ch' }}>
-              <Box sx={{
-                display: 'flex',
-              }}>
-
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
-                  <DesktopDatePicker
-                    disabled={checked}
-                    label="Date of the Watch"
-                    inputFormat="MM/dd/yyyy"
-                    value={newWatch.Date}
-                    onChange={handleDateChange}
-                    renderInput={(params) => <TextField {...params} />}
-                  />
-                </LocalizationProvider>
-                <FormControlLabel
-                  control={<Switch checked={checked} onChange={handleDateSwitchChange} />}
-                  label="Can't Remember"
-                  labelPlacement="start" />
-              </Box>
-              <TextField
-                fullWidth
-                margin='normal'
-                value={newWatch.Place}
-                onChange={handleChange('Place')}
-                id="Place"
-                label="Place"
-                variant="outlined" />
-              <TextField
-                fullWidth
-                multiline
-                maxRows={6}
-                type='text'
-                margin='normal'
-                value={newWatch.Note}
-                onChange={handleChange('Note')}
-                id="Note"
-                label="Note"
-                variant="outlined" />
+          <Box sx={{ width: '60ch', paddingTop: '1ch' }}>
+            <Box sx={{
+              display: 'flex',
+            }}>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DesktopDatePicker
+                  disabled={checked}
+                  label="Date of the Watch"
+                  inputFormat="MM/dd/yyyy"
+                  value={newWatch.Date}
+                  onChange={handleDateChange}
+                  renderInput={(params) => <TextField {...params} />}
+                />
+              </LocalizationProvider>
+              <FormControlLabel
+                control={<Switch checked={checked} onChange={handleDateSwitchChange} />}
+                label="Can't Remember"
+                labelPlacement="start" />
             </Box>
-            <Stack spacing={2} direction="row">
-
-            </Stack>
-
+            <TextField
+              fullWidth
+              margin='normal'
+              value={newWatch.Place}
+              onChange={handleChange('Place')}
+              id="Place"
+              label="Place"
+              variant="outlined" />
+            <TextField
+              fullWidth
+              multiline
+              maxRows={6}
+              type='text'
+              margin='normal'
+              value={newWatch.Note}
+              onChange={handleChange('Note')}
+              id="Note"
+              label="Note"
+              variant="outlined" />
           </Box>
         </DialogContent>
         <DialogActions>

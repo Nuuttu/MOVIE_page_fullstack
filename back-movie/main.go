@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -14,12 +15,13 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 	"github.com/rs/xid"
+	"github.com/xuri/excelize/v2"
 )
 
 type Movie struct {
 	Id       xid.ID    `json:"Id"`
 	Name     string    `json:"Name" validate:"required,min=2,max=169"`
-	Year     int       `json:"Year" validate:"numeric,gte=1900,lte=2100"`
+	Year     int       `json:"Year" validate:"numeric,gte=0,lte=2100"`
 	Rating   int       `json:"Rating" validate:"numeric,gte=0,lte=10"`
 	Review   string    `json:"Review" validate:"min=0,max=16900"`
 	Watches  []Watch   `json:"Watches"`
@@ -28,19 +30,20 @@ type Movie struct {
 
 type EditMovie struct {
 	Name   string `json:"Name" validate:"required,min=2,max=169"`
-	Year   int    `json:"Year" validate:"numeric,gte=1900,lte=2100"`
+	Year   int    `json:"Year" validate:"numeric,gte=0,lte=2100"`
 	Rating int    `json:"Rating" validate:"numeric,gte=0,lte=10"`
 	Review string `json:"Review" validate:"min=0,max=16900"`
 }
 
 type Watch struct {
+	Id    xid.ID    `json:"Id"`
 	Date  time.Time `json:"Date" validate:"datetime"`
 	Place string    `json:"Place"`
 	Note  string    `json:"Note"`
 }
 
 type Comment struct {
-	Id            int       `json:"Id"`
+	Id            xid.ID    `json:"Id"`
 	Owner         string    `json:"Owner"`
 	Content       string    `json:"Content"`
 	Creation_Time time.Time `json:"Creation_Time"`
@@ -49,6 +52,113 @@ type Comment struct {
 var movieList []Movie
 
 var validate *validator.Validate
+
+func getMoviesFromFile() {
+	fmt.Println("Getting movies from file")
+
+	f, err := excelize.OpenFile("Medialists.xlsx")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	// Get value from cell by given worksheet name and axis.
+	/*
+		cell, err := f.GetCellValue("Movies", "A4")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		fmt.Println(cell)
+	*/
+	// Get all the rows in the Sheet1.
+	rows, err := f.GetRows("Movies")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	for is, row := range rows {
+		if is > 3 {
+			//					for ir, colCell := range row {
+			// }
+			var newMovie Movie
+			newMovie.setId()
+			newMovie.Name = row[0]
+			newMovie.Year = 0
+			rating, e := strconv.ParseFloat(row[1], 10)
+			if e != nil {
+				fmt.Println("e", e)
+			}
+			newMovie.Rating = int(rating)
+			if len(row) == 5 {
+				//fmt.Printf("is?\n %s,\n %s,\n %s,\n %s,\n %s,\n", row[0], row[1], row[2], row[3], row[4])
+
+				if len(row[2]) > 0 {
+					//fmt.Println(row[2])
+					newMovie.Review = row[2]
+				}
+				if len(row[3]) > 0 {
+					//fmt.Printf("\n\n-%s-\n", row[3])
+					var newWatch Watch
+					wDate, _ := time.Parse("2006-01-02", strings.Replace(row[3], ".", "-", -1))
+					//fmt.Println("wDate", wDate)
+					newWatch.Date = wDate
+					newWatch.setId()
+					//fmt.Println("enwWathc", newWatch)
+					newMovie.Watches = append(newMovie.Watches, newWatch)
+				}
+				if len(row[4]) > 0 {
+					//fmt.Printf("\n\n-%s-\n", strings.Replace(row[4], ".", "-", -1))
+					var newWatch Watch
+					wDate, _ := time.Parse("2006-01-02", strings.Replace(row[4], ".", "-", -1))
+					//fmt.Println("wDate", wDate)
+					newWatch.Date = wDate
+					newWatch.setId()
+					//fmt.Println("enwWathc", newWatch)
+					newMovie.Watches = append(newMovie.Watches, newWatch)
+				}
+				var newWatch Watch
+				newWatch.setId()
+				newMovie.Watches = append(newMovie.Watches, newWatch)
+			} else if len(row) == 4 {
+				//fmt.Printf("is?\n %s,\n %s,\n %s,\n %s,\n", row[0], row[1], row[2], row[3])
+				if len(row[2]) > 0 {
+					//fmt.Println(row[2])
+					newMovie.Review = row[2]
+				}
+				if len(row[3]) > 0 {
+					//fmt.Println(row[3])
+					var newWatch Watch
+					wDate, _ := time.Parse("2006-01-02", strings.Replace(row[3], ".", "-", -1))
+					//fmt.Println("wDate", wDate)
+					newWatch.Date = wDate
+					newWatch.setId()
+					//fmt.Println("enwWathc", newWatch)
+					newMovie.Watches = append(newMovie.Watches, newWatch)
+				}
+			} else if len(row) == 3 {
+				//fmt.Printf("is?\n %s,\n %s,\n %s,\n", row[0], row[1], row[2])
+				if len(row[2]) > 0 {
+					//fmt.Println(row[2])
+					newMovie.Review = row[2]
+				}
+				var newWatch Watch
+				newWatch.setId()
+				newMovie.Watches = append(newMovie.Watches, newWatch)
+			} else {
+				//fmt.Printf("is?\n %s,\n %s,\n", row[0], row[1])
+				var newWatch Watch
+				newWatch.setId()
+				newMovie.Watches = append(newMovie.Watches, newWatch)
+			}
+
+			//fmt.Println("newMovie", newMovie)
+			movieList = append(movieList, newMovie)
+			fmt.Println()
+		}
+	}
+
+	fmt.Println("Got movies from file")
+}
 
 func toLowerCase(h http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
@@ -99,9 +209,10 @@ func addMovie(w http.ResponseWriter, r *http.Request) {
 		}
 		fmt.Printf("new Movie:\n{\n Name: %s,\n Year: %d\n Rating: %d\n Review: %s\n}\n", newMovie.Name, newMovie.Year, newMovie.Rating, newMovie.Review)
 		newMovie.setId()
-		var newWatch Watch
+		var newWatch Watch // NOT ADDING "CANT REMEMEBER" TÄPPÄ
 		json.Unmarshal(reqBody, &newWatch)
 		if !newWatch.Date.IsZero() {
+			newWatch.setId()
 			newMovie.Watches = append(newMovie.Watches, newWatch)
 		}
 		fmt.Printf("new Movie details: \nName: %s \nReview: %s\nRating: %d\nDate: %s\nPlace: %s\nNote: %s\n ", newMovie.Name, newMovie.Review, newMovie.Rating, newWatch.Date, newWatch.Place, newWatch.Note)
@@ -125,10 +236,6 @@ func addMovie(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (movie *Movie) setId() {
-	movie.Id = xid.New()
-}
-
 func addViewing(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,access-control-allow-origin, access-control-allow-headers")
@@ -149,6 +256,7 @@ func addViewing(w http.ResponseWriter, r *http.Request) {
 
 			var newWatch Watch
 			json.Unmarshal(reqBody, &newWatch)
+			newWatch.setId()
 
 			/* Tää ei toimi näin Time.time ei toimi validoiniissa näin
 			err := validate.Struct(newWatch)
@@ -160,7 +268,6 @@ func addViewing(w http.ResponseWriter, r *http.Request) {
 			movieIndex, _ := getMovieIndexFromList(mxidm)
 
 			fmt.Println("movielist index movie: ", movieList[movieIndex].Name)
-
 			movieList[movieIndex].Watches = append(movieList[movieIndex].Watches, newWatch)
 
 			fmt.Printf("new Viewing details: \nMovie Name: %s \nDate: %s \nPlace: %s\nNote: %s\n", movieList[movieIndex].Name, newWatch.Date, newWatch.Place, newWatch.Note)
@@ -169,16 +276,17 @@ func addViewing(w http.ResponseWriter, r *http.Request) {
 
 		}
 	}
+}
 
+func (movie *Movie) setId() {
+	movie.Id = xid.New()
 }
 
 func getMovieIndexFromList(xid xid.ID) (int, error) {
-
 	for i, m := range movieList {
 		if xid == m.Id {
 			return i, nil
 		}
-
 	}
 	return -1, errors.New("No movie found by that Id")
 }
@@ -186,6 +294,28 @@ func getMovieIndexFromList(xid xid.ID) (int, error) {
 func containsMovieById(ml []Movie, id string) bool {
 	for _, m := range ml {
 		if (m.Id).String() == id {
+			return true
+		}
+	}
+	return false
+}
+
+func (watch *Watch) setId() {
+	watch.Id = xid.New()
+}
+
+func getWatchIndexFromList(wl []Watch, xid xid.ID) (int, error) {
+	for i, w := range wl {
+		if xid == w.Id {
+			return i, nil
+		}
+	}
+	return -1, errors.New("No watch found by that Id")
+}
+
+func containsWatchById(wl []Watch, id string) bool {
+	for _, w := range wl {
+		if (w.Id).String() == id {
 			return true
 		}
 	}
@@ -276,6 +406,46 @@ func (m *Movie) modifyMovie(newMovie EditMovie) {
 	m.Review = newMovie.Review
 }
 
+func removeWatch(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,access-control-allow-origin, access-control-allow-headers")
+	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, DELETE")
+
+	if r.Method == "DELETE" {
+
+		vars := mux.Vars(r)
+		vid := vars["vid"]
+		mid := vars["mid"]
+		fmt.Printf("DELETE ID: %s\n", vid)
+
+		if !containsMovieById(movieList, mid) {
+			boom.BadRequest(w, "No Movie by that ID")
+		} else {
+
+			mxidm, _ := xid.FromString(mid)
+			movieIndex, _ := getMovieIndexFromList(mxidm)
+
+			if !containsWatchById(movieList[movieIndex].Watches, vid) {
+				boom.BadRequest(w, "No Viewing by that ID")
+			} else {
+				// reqBody, _ := ioutil.ReadAll(r.Body)
+				// fmt.Println("reqBody ", string(reqBody))
+
+				vxidm, _ := xid.FromString(vid)
+				watchIndex, _ := getWatchIndexFromList(movieList[movieIndex].Watches, vxidm)
+
+				// fmt.Println("movielist index movie: ", watchList[watchIndex].Name)
+				deletedWatch := movieList[movieIndex].Watches[watchIndex]
+				movieList[movieIndex].Watches = append(movieList[movieIndex].Watches[:watchIndex], movieList[movieIndex].Watches[watchIndex+1:]...)
+
+				w.Header().Add("Content-Type", "application/json")
+				json.NewEncoder(w).Encode(deletedWatch)
+
+			}
+		}
+	}
+}
+
 func handleRequests() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", home)
@@ -285,6 +455,8 @@ func handleRequests() {
 	router.HandleFunc("/movies/{id}/viewing/add", addViewing).Methods("POST", "OPTIONS")
 	router.HandleFunc("/movies/{id}/edit", editMovie).Methods("PUT", "OPTIONS")
 	router.HandleFunc("/movies/{id}", getMovieById).Methods("GET", "OPTIONS")
+	router.HandleFunc("/movies/{mid}/viewing/{vid}/delete", removeWatch).Methods("DELETE", "OPTIONS")
+
 	/*
 		originsOk := handlers.AllowedOrigins([]string{"http://localhost:3000"})
 		headersOk := handlers.AllowedHeaders([]string{"X-Requested-With", "Access-Control-Allow-Origin: *"})
@@ -296,5 +468,6 @@ func handleRequests() {
 
 func main() {
 	fmt.Println("Setting up a server on http://localhost:10000")
+	getMoviesFromFile()
 	handleRequests()
 }

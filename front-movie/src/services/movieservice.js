@@ -38,6 +38,14 @@ const addViewing = async (viewing, id) => {
   return response.data
 }
 
-const movieService = { getAll, addMovie, addViewing, editMovie }
+const deleteViewing = async (vid, mid) => {
+  console.log('deleting a viewing')
+
+  const response = await axios.delete(baseUrl + `/movies/${mid}/viewing/${vid}/delete`)
+
+  return response.data
+}
+
+const movieService = { getAll, addMovie, addViewing, editMovie, deleteViewing }
 
 export default movieService

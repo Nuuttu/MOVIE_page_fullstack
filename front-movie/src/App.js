@@ -37,22 +37,23 @@ function App() {
 
       <Notification />
       <header className="App-header">
-        <ReactMarkdown>*React-Markdown* is **Awesome**</ReactMarkdown>
         <div>
           <p className="App-logo">Tuomo's Movie List</p>
           {/* <Notification /> */}
 
-          {!loading ?
-            <div>
-              <MovieForm />
-              <MovieList />
-            </div>
-            :
-            <Typography variant='h5'>Cannot find the Movie List :(</Typography>
-          }
+
         </div>
       </header>
-
+      <div className="App-body">
+        {!loading ?
+          <div>
+            <MovieForm />
+            <MovieList />
+          </div>
+          :
+          <Typography variant='h5'>Cannot find the Movie List :(</Typography>
+        }
+      </div>
       <Types />
     </div>
   );
