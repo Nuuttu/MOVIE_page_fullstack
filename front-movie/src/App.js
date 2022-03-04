@@ -12,8 +12,6 @@ import Notification from './components/Notification'
 
 import { getAll } from './reducers/movieReducer'
 
-import ReactMarkdown from 'react-markdown'
-
 function App() {
   //const [movies, setMovies] = useState([])
   const [loading, setLoading] = useState(true)

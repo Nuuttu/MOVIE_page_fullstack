@@ -153,7 +153,7 @@ func getMoviesFromFile() {
 
 			//fmt.Println("newMovie", newMovie)
 			movieList = append(movieList, newMovie)
-			fmt.Println()
+			//fmt.Println()
 		}
 	}
 
@@ -445,6 +445,13 @@ func removeWatch(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
+
+/*
+	-Watch tietojen editointi
+	-Tarkista, että editoidessa, muuta tiedot on samoja, muuten epäonnistu.
+	-
+
+*/
 
 func handleRequests() {
 	router := mux.NewRouter().StrictSlash(true)

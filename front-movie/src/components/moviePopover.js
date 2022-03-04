@@ -67,11 +67,17 @@ const MoviePopover = (props) => {
   return (
     <React.Fragment>
       {prop === 'Review' ?
-        <Typography paragraph onDoubleClick={handleOpen} variant='body2' gutterBottom component="div" sx={{ whiteSpace: 'pre-line', maxWidth: '77ch', padding: '20px' }}>
+        <Typography
+          paragraph
+          onDoubleClick={handleOpen}
+          variant='body2'
+          gutterBottom
+          component="div"
+          sx={{ whiteSpace: 'pre-line', width: '88ch', maxWidth: '85vw', padding: '10px', wordWrap: 'break-word' }}>
           {row.Review}
         </Typography>
         :
-        <TableCell sx={{ width: twidth }} align={align} aria-describedby={id} onDoubleClick={handleOpen}>
+        <TableCell sx={{ /* width: twidth, */ padding: '10px' }} align={align} aria-describedby={id} onDoubleClick={handleOpen}>
           {row[prop]}
         </TableCell>
       }
@@ -89,11 +95,11 @@ const MoviePopover = (props) => {
       >
         {/* <PropSwitch p={prop} /> */}
         {prop === 'Name' &&
-          <Box sx={{ p: 1, bgcolor: 'background.paper' }}>
+          <Box sx={{ p: 1, bgcolor: 'background.paper', maxWidth: '95vw' }}>
             <TextField
               autoFocus
               placeholder={prop}
-              sx={{ flexGrow: 2, marginRight: '1ch' }}
+              sx={{ flexGrow: 2, marginRight: '1ch', width: '400px', maxWidth: '80vw' }}
               required
               margin='normal'
               value={editingMovie[prop]}
@@ -130,7 +136,7 @@ const MoviePopover = (props) => {
           </Box>
         }
         {prop === 'Rating' &&
-          <Box sx={{ width: '40ch', p: 1, bgcolor: 'background.paper', display: 'block', align: 'center' }}>
+          <Box sx={{ width: '40ch', maxWidth: '90vw', p: 1, bgcolor: 'background.paper', display: 'block', align: 'center' }}>
             <Typography id="Rating" gutterBottom>
               Rating
             </Typography>
@@ -159,9 +165,9 @@ const MoviePopover = (props) => {
               autoFocus
               fullWidth
               multiline
-              maxRows={8}
+              maxRows={16}
               placeholder={prop}
-              sx={{ width: '70ch', flexGrow: 2, marginRight: '1ch' }}
+              sx={{ width: '100vw', maxWidth: '90vw', marginRight: '1ch' }}
               required
               margin='normal'
               value={editingMovie[prop]}

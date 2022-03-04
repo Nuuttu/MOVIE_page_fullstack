@@ -113,9 +113,16 @@ const MovieForm = (props) => {
         <DialogTitle>New Movie</DialogTitle>
         <DialogContent>
           <Box>
-            <Box sx={{ width: '60ch' }}>
+            <Box sx={{
+              width: '60ch',
+              maxWidth: '75vw',
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'start',
+              alignItems: 'center'
+            }}>
               <Box sx={{
-                display: 'flex',
+                display: 'flex', flexWrap: 'wrap', flexBasis: '100%',
               }}>
                 <TextField
                   autoFocus
@@ -128,6 +135,7 @@ const MovieForm = (props) => {
                   label="Name"
                   variant="outlined" />
                 <TextField
+                  sx={{ flexGrow: 1 }}
                   type='number'
                   margin='normal'
                   value={newMovie.Year}
@@ -139,7 +147,7 @@ const MovieForm = (props) => {
               <TextField
                 fullWidth
                 multiline
-                maxRows={8}
+                maxRows={16}
                 type='text'
                 margin='normal'
                 value={newMovie.Review}
@@ -147,30 +155,45 @@ const MovieForm = (props) => {
                 id="Review"
                 label="Review"
                 variant="outlined" />
-              <Typography id="Rating" gutterBottom>
-                Rating
-              </Typography>
-              <Slider
-                required
-                sx={{ marginTop: '3ch', marginBottom: '2ch' }}
-                color='primary'
-                aria-label="Rating"
-                // defaultValue={3}
-                value={newMovie.Rating}
-                onChange={handleChange('Rating')}
-                valueLabelDisplay="on"
-                step={1}
-                //marks
-                min={0}
-                max={10}
-              />
+              <Box sx={{
+                marginBottom: '2ch',
+                maxWidth: '80vw',
+                minWidth: '20px',
+                flexShrink: 0,
+                flex: '0 0 100%',
+                flexBasis: '100%'
+              }}>
+                <Typography id="Rating" gutterBottom>
+                  Rating
+                </Typography>
+                <Box
+                >
+                  <Slider
+                    required
+                    sx={{
+                      marginTop: '3ch',
+                      width: '90%'
+                    }}
+                    color='primary'
+                    aria-label="Rating"
+                    // defaultValue={3}
+                    value={newMovie.Rating}
+                    onChange={handleChange('Rating')}
+                    valueLabelDisplay="on"
+                    step={1}
+                    //marks
+                    min={0}
+                    max={10}
 
-              <div>
+                  />
+                </Box>
+              </Box>
+              <Box>
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
                   <DesktopDatePicker
                     disabled={checked}
                     label="Date of the Watch"
-                    inputFormat="MM/dd/yyyy"
+                    inputFormat="dd/MM/yyyy"
                     value={newMovie.Date}
                     onChange={handleDateChange}
                     renderInput={(params) => <TextField {...params} />}
@@ -180,7 +203,7 @@ const MovieForm = (props) => {
                   control={<Switch checked={checked} onChange={handleDateSwitchChange} />}
                   label="Can't Remember"
                   labelPlacement="start" />
-              </div>
+              </Box>
               <TextField
                 fullWidth
                 margin='normal'

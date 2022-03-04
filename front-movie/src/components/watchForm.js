@@ -19,6 +19,7 @@ import AdapterDateFns from '@mui/lab/AdapterDateFns';
 //import DateAdapter from '@mui/lab/AdapterDateFns';
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
 import DesktopDatePicker from '@mui/lab/DesktopDatePicker';
+import Paper from '@mui/material/Paper';
 
 import React, { useState } from 'react';
 import { DateRange } from '@mui/icons-material';
@@ -90,53 +91,55 @@ export default function WatchForm(props) {
     <div>
       <IconButton color="inherit" onClick={() => handleClickOpen()}><AddCircleOutlineIcon sx={{ fontSize: 20 }} /></IconButton>
 
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>New Watch</DialogTitle>
-        <DialogContent>
-          <Box sx={{ width: '60ch', paddingTop: '1ch' }}>
-            <Box sx={{
-              display: 'flex',
-            }}>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <DesktopDatePicker
-                  disabled={checked}
-                  label="Date of the Watch"
-                  inputFormat="MM/dd/yyyy"
-                  value={newWatch.Date}
-                  onChange={handleDateChange}
-                  renderInput={(params) => <TextField {...params} />}
-                />
-              </LocalizationProvider>
-              <FormControlLabel
-                control={<Switch checked={checked} onChange={handleDateSwitchChange} />}
-                label="Can't Remember"
-                labelPlacement="start" />
+      <Dialog open={open} onClose={handleClose} >
+        <Paper sx={{ maxWidth: '90vw', display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <DialogTitle sx={{ justifySelf: 'start' }}>New Watch</DialogTitle>
+          <DialogContent>
+            <Box sx={{ width: '60ch', maxWidth: '60vw', paddingTop: '1ch' }}>
+              <Box sx={{
+                display: 'flex', flexWrap: 'wrap'
+              }}>
+                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                  <DesktopDatePicker
+                    disabled={checked}
+                    label="Date of the Watch"
+                    inputFormat="dd/MM/yyyy"
+                    value={newWatch.Date}
+                    onChange={handleDateChange}
+                    renderInput={(params) => <TextField {...params} />}
+                  />
+                </LocalizationProvider>
+                <FormControlLabel
+                  control={<Switch checked={checked} onChange={handleDateSwitchChange} />}
+                  label="Can't Remember"
+                  labelPlacement="start" />
+              </Box>
+              <TextField
+                fullWidth
+                margin='normal'
+                value={newWatch.Place}
+                onChange={handleChange('Place')}
+                id="Place"
+                label="Place"
+                variant="outlined" />
+              <TextField
+                fullWidth
+                multiline
+                maxRows={6}
+                type='text'
+                margin='normal'
+                value={newWatch.Note}
+                onChange={handleChange('Note')}
+                id="Note"
+                label="Note"
+                variant="outlined" />
             </Box>
-            <TextField
-              fullWidth
-              margin='normal'
-              value={newWatch.Place}
-              onChange={handleChange('Place')}
-              id="Place"
-              label="Place"
-              variant="outlined" />
-            <TextField
-              fullWidth
-              multiline
-              maxRows={6}
-              type='text'
-              margin='normal'
-              value={newWatch.Note}
-              onChange={handleChange('Note')}
-              id="Note"
-              label="Note"
-              variant="outlined" />
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => handleAdd()} variant="contained">Add Viewing</Button>
-          <Button onClick={handleClose} variant="text" color="error" >Cancel</Button>
-        </DialogActions>
+          </DialogContent>
+          <DialogActions sx={{ alignSelf: 'end' }}>
+            <Button onClick={() => handleAdd()} variant="contained">Add Viewing</Button>
+            <Button onClick={handleClose} variant="text" color="error" >Cancel</Button>
+          </DialogActions>
+        </Paper>
       </Dialog>
     </div>
   )

@@ -19,13 +19,7 @@ import TableSortLabel from '@mui/material/TableSortLabel';
 import TablePagination from '@mui/material/TablePagination';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Switch from '@mui/material/Switch';
-import FilterListIcon from '@mui/icons-material/FilterList';
 import { visuallyHidden } from '@mui/utils';
-import Tooltip from '@mui/material/Tooltip';
-import Toolbar from '@mui/material/Toolbar';
-import { alpha } from '@mui/material/styles';
 import WatchForm from './WatchForm';
 import Popover from '@mui/material/Popover';
 import TextField from '@mui/material/TextField';
@@ -36,24 +30,16 @@ import { useSelector } from 'react-redux'
 import { useDispatch } from "react-redux"
 import { deleteViewing } from '../reducers/movieReducer';
 
-function EditableCell(props) {
+// https://www.npmjs.com/package/react-responsive
+import { useMediaQuery } from 'react-responsive'
 
-  const { row, prop } = props;
-  const [open, setOpen] = React.useState(false);
-
-  const handleDoubleClick = (prop) => (event) => {
-    console.log('double clicked', prop, row)
-  }
-
-
-
-  return (
-    <React.Fragment>
-      <TableCell component="th" scope="row" onDoubleClick={handleDoubleClick(prop)}>
-        {prop}
-      </TableCell>
-    </React.Fragment>
-  )
+const Small = ({ children }) => {
+  const isSmall = useMediaQuery({ maxWidth: 767 })
+  return isSmall ? children : null
+}
+const Default = ({ children }) => {
+  const isNotMobile = useMediaQuery({ minWidth: 768 })
+  return isNotMobile ? children : null
 }
 
 function WatchPopover(props) {
@@ -129,8 +115,12 @@ function Row(props) {
     <React.Fragment>
       <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
         <MoviePopover row={row} prop='Name' align="left" twidth={225} />
-        <MoviePopover row={row} prop='Year' align="right" twidth={80} />
+        <Default>
+          <MoviePopover row={row} prop='Year' align="right" twidth={80} />
+        </Default>
         <MoviePopover row={row} prop='Rating' align="right" twidth={85} />
+
+
         {/* <EditableCell row={row} prop={row.Name} />
         <EditableCell row={row} prop={row.Year} />
         <EditableCell row={row} prop={row.Rating} /> */}
@@ -144,21 +134,23 @@ function Row(props) {
         <TableCell align="right">{row.Rating}</TableCell>
         */}
         {row.Watches !== null ?
-          <TableCell align="right" sx={{ width: '130px' }}>
+          <TableCell align="right" sx={{ width: '130px', padding: '10px' }}>
             {row.LastViewing > 0 ?
               //dateFormatter(row.Watches[row.Watches.length - 1].Date)
               dateFormatter(row.Watches[0].Date)
               : '-'
             }
           </TableCell>
-          : <TableCell align="right" sx={{ width: '130px' }}>-</TableCell>
+          : <TableCell align="right" sx={{ width: '130px', padding: '10px' }}>-</TableCell>
         }
-        {row.Watchtimes !== null ?
-          <TableCell sx={{ width: '100px' }} align="right">{row.Watchtimes}</TableCell>
-          : <TableCell align="right" sx={{ width: '100px' }}>-</TableCell>
-        }
-        <TableCell /* width={2} */>
+        <Default>
+          {row.Watchtimes !== null ?
+            <TableCell sx={{ width: '100px', padding: '10px' }} align="right">{row.Watchtimes}</TableCell>
+            : <TableCell align="right" sx={{ width: '100px', padding: '10px' }}>-</TableCell>
+          }
+        </Default>
 
+        <TableCell /* width={2} */ sx={{ width: '34px', padding: '10px' }}>
           <IconButton
             aria-label="expand row"
             size="small"
@@ -198,10 +190,10 @@ function Row(props) {
                     <TableRow key={`watches${i}`}>
                       {new Date(w.Date).getTime() < 0 ?
                         <TableCell component="th" scope="row">-</TableCell>
-                        : <TableCell component="th" scope="row">{dateFormatter(w.Date)}</TableCell>
+                        : <TableCell component="th" scope="row" sx={{ maxWidth: '15vw', wordWrap: 'break-word', paddingLeft: '4px', paddingRight: '4px' }}>{dateFormatter(w.Date)}</TableCell>
                       }
-                      <TableCell>{w.Place}</TableCell>
-                      <TableCell>{w.Note}</TableCell>
+                      <TableCell sx={{ maxWidth: '10vw', wordWrap: 'break-word', paddingLeft: '4px', paddingRight: '4px' }}>{w.Place}</TableCell>
+                      <TableCell sx={{ maxWidth: '10vw', wordWrap: 'break-word', paddingLeft: '4px', paddingRight: '4px' }}>{w.Note}</TableCell>
                       <TableCell width='20px' align='right'>
                         <WatchPopover row={row} w={w} />
                       </TableCell>
@@ -248,7 +240,7 @@ function stableSort(array, comparator) {
   return stabilizedThis.map((el) => el[0]);
 }
 
-const headCells = [
+const headCellsLarge = [
   {
     id: 'Name',
     numeric: false,
@@ -291,6 +283,33 @@ const headCells = [
   },
 ];
 
+const headCellsSmall = [
+  {
+    id: 'Name',
+    numeric: false,
+    disablePadding: false,
+    label: 'Name',
+    align: 'center',
+    width: '280px'
+  },
+  {
+    id: 'Rating',
+    numeric: true,
+    disablePadding: false,
+    label: 'Rating',
+    align: 'right',
+    width: '85px'
+  },
+  {
+    id: 'LastViewing',
+    numeric: true,
+    disablePadding: false,
+    label: 'Last Viewing',
+    align: 'right',
+    width: '130px'
+  },
+];
+
 function EnhancedTableHead(props) {
   const { order, orderBy, onRequestSort } =
     props;
@@ -301,29 +320,56 @@ function EnhancedTableHead(props) {
   return (
     <TableHead >
       <TableRow>
-        {headCells.map((headCell) => (
-          <TableCell
-            key={headCell.id}
-            //align={headCell.numeric ? 'right' : 'center'}
-            align={headCell.align}
-            padding={headCell.disablePadding ? 'none' : 'normal'}
-            sortDirection={orderBy === headCell.id ? order : false}
-            sx={{ width: headCell.width }}
-          >
-            <TableSortLabel
-              active={orderBy === headCell.id}
-              direction={orderBy === headCell.id ? order : 'desc'}
-              onClick={createSortHandler(headCell.id)}
+        <Default>
+          {headCellsLarge.map((headCell) => (
+            <TableCell
+              key={headCell.id}
+              //align={headCell.numeric ? 'right' : 'center'}
+              align={headCell.align}
+              padding={headCell.disablePadding ? 'none' : 'normal'}
+              sortDirection={orderBy === headCell.id ? order : false}
+              sx={{ width: headCell.width, padding: '10px' }}
             >
-              {headCell.label}
-              {orderBy === headCell.id ? (
-                <Box component="span" sx={visuallyHidden}>
-                  {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-                </Box>
-              ) : null}
-            </TableSortLabel>
-          </TableCell>
-        ))}
+              <TableSortLabel
+                active={orderBy === headCell.id}
+                direction={orderBy === headCell.id ? order : 'desc'}
+                onClick={createSortHandler(headCell.id)}
+              >
+                {headCell.label}
+                {orderBy === headCell.id ? (
+                  <Box component="span" sx={visuallyHidden}>
+                    {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+                  </Box>
+                ) : null}
+              </TableSortLabel>
+            </TableCell>
+          ))}
+        </Default>
+        <Small>
+          {headCellsSmall.map((headCell) => (
+            <TableCell
+              key={headCell.id}
+              //align={headCell.numeric ? 'right' : 'center'}
+              align={headCell.align}
+              padding={headCell.disablePadding ? 'none' : 'normal'}
+              sortDirection={orderBy === headCell.id ? order : false}
+              sx={{ width: headCell.width, padding: '10px' }}
+            >
+              <TableSortLabel
+                active={orderBy === headCell.id}
+                direction={orderBy === headCell.id ? order : 'desc'}
+                onClick={createSortHandler(headCell.id)}
+              >
+                {headCell.label}
+                {orderBy === headCell.id ? (
+                  <Box component="span" sx={visuallyHidden}>
+                    {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+                  </Box>
+                ) : null}
+              </TableSortLabel>
+            </TableCell>
+          ))}
+        </Small>
       </TableRow>
     </TableHead>
   );
@@ -333,10 +379,17 @@ export default function MovieList() {
 
   const movies = useSelector(state => state.movies)
 
+  if (movies != null) {
+    movies.sort(function (a, b) {
+      if (a.Name < b.Name) { return -1; }
+      if (a.Name > b.Name) { return 1; }
+      return 0;
+    })
+  }
+
   const [order, setOrder] = React.useState('desc');
   const [orderBy, setOrderBy] = React.useState('Rating');
   const [page, setPage] = React.useState(0);
-  const [dense, setDense] = React.useState(false);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
   const handleRequestSort = (event, property) => {
@@ -375,9 +428,20 @@ export default function MovieList() {
   if (movies != null) return (
     <React.Fragment>
       <Paper>
-        <Box sx={{ display: 'block' }}>
+        {/* <Default> */}
+        <Box sx={{
+          display: 'flex',
+          //textAlign: 'left',
+          paddingLeft: '2ch',
+          flexWrap: 'wrap',
+          alignItems: 'flex-start',
+          alignContent: 'flex-start'
+        }}>
           <TextField
-            sx={{ flexGrow: 2, marginRight: '1ch' }}
+            sx={{
+              flexGrow: 1,
+              marginRight: '1ch',
+            }}
             margin='normal'
             value={filterTerm}
             onChange={handleFilterChange}
@@ -386,9 +450,14 @@ export default function MovieList() {
             variant="outlined"
           />
           <TablePagination
+            sx={{
+              alignSelf: 'center',
+              flexGrow: 2,
+              "& .MuiToolbar-root": { flexWrap: 'wrap', justifyContent: 'end' }
+            }}
             rowsPerPageOptions={[10, 25, 100]}
             component="div"
-            count={movies.length}
+            count={movies.filter(m => (m.Name.toLowerCase()).includes(filterTerm.toLowerCase())).length}
             rowsPerPage={rowsPerPage}
             page={page}
             showFirstButton={true}
@@ -397,8 +466,50 @@ export default function MovieList() {
             onRowsPerPageChange={handleChangeRowsPerPage}
           />
         </Box>
-        <TableContainer /* component={Paper} */>
-          <Table stickyHeader sx={{ width: '86ch', maxWidth: '86ch' }} aria-label="simple table">
+        {/* 
+        </Default>
+        <Small>
+          <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            //textAlign: 'left',
+            paddingLeft: '2ch',
+            alignItems: 'flex-start',
+            alignContent: 'flex-start'
+          }}>
+            <TextField
+              sx={{
+                flexGrow: 1,
+                marginRight: '1ch',
+              }}
+              margin='normal'
+              value={filterTerm}
+              onChange={handleFilterChange}
+              id='filternameterm'
+              label='Filter Name'
+              variant="outlined"
+            />
+            <TablePagination
+              sx={{ alignSelf: 'center', flexGrow: 2, flexDirection: 'row', flexWrap: 'wrap' }}
+        rowsPerPageOptions={[10, 25, 100]}
+        component="div"
+        count={movies.filter(m => (m.Name.toLowerCase()).includes(filterTerm.toLowerCase())).length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        showFirstButton={true}
+        showLastButton={true}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+      </Box>
+    </Small>
+    */}
+        < TableContainer /* component={Paper} */ >
+          <Table
+            stickyHeader
+            aria-label="simple table"
+            sx={{ /* width: '86ch',  */ width: '86ch', maxWidth: '100vw' }}
+          >
             <EnhancedTableHead
               order={order}
               orderBy={orderBy}
@@ -415,7 +526,7 @@ export default function MovieList() {
               {emptyRows > 0 && (
                 <TableRow
                   style={{
-                    height: 69 * emptyRows,
+                    height: 55 * emptyRows,
                   }}
                 >
                   <TableCell colSpan={6} />
@@ -425,9 +536,13 @@ export default function MovieList() {
           </Table>
         </TableContainer >
         <TablePagination
+          sx={{
+            flexGrow: 2,
+            "& .MuiToolbar-root": { flexWrap: 'wrap', justifyContent: 'end' }
+          }}
           rowsPerPageOptions={[10, 25, 100]}
           component="div"
-          count={movies.length}
+          count={movies.filter(m => (m.Name.toLowerCase()).includes(filterTerm.toLowerCase())).length}
           rowsPerPage={rowsPerPage}
           page={page}
           showFirstButton={true}
@@ -435,8 +550,8 @@ export default function MovieList() {
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
-      </Paper>
-    </React.Fragment>
+      </Paper >
+    </React.Fragment >
   )
 }
 
