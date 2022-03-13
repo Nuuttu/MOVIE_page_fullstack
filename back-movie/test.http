@@ -3,7 +3,30 @@ ctrl+alt+c -> templateja eri pyyntöihin
 @name = randMoovie
 
 ###
-GET http://localhost:10000/Coffee/7504504064263669287
+GET http://localhost:10000/w
+###
+GET http://localhost:10000/logout
+###
+# @name signup
+
+POST http://localhost:10000/signup
+Content-Type: application/json
+
+{
+  "username": "user{{$randomInt 0 10}}",
+  "password": "pw"
+}
+
+###
+# @name signin
+
+POST http://localhost:10000/signin
+Content-Type: application/json
+
+{
+  "username": "user1",
+  "password": "pw"
+}
 
 ###
 GET http://localhost:10000/movies/

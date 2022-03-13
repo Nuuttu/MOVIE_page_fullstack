@@ -1,6 +1,7 @@
 package main
 
 import (
+	"back-movie/endpoints"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,8 +17,39 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rs/xid"
 	"github.com/xuri/excelize/v2"
+	"golang.org/x/crypto/bcrypt"
 )
 
+type User struct {
+	Id           xid.ID  `json:"Id"`
+	Username     string  `json:"Name" validate:"required,min=2,max=69"`
+	Movielist    []Movie `json:"Movielist"`
+	PasswordHash string  `json:"PasswordHash"`
+}
+
+type Credentials struct {
+	Username string `json:"username" validate:"required,min=2,max=69"`
+	Password string `json:"password" validate:"required,min=2,max=69"`
+}
+
+// uppercase json hmmhmm
+type UserDetails struct {
+	First_name string `json:"first_name"`
+	Last_name  string `json:"last_name"`
+}
+
+type Session struct {
+	username   string
+	expiration time.Time
+}
+
+var sessions = map[string]Session{}
+
+func (s Session) isExpired() bool {
+	return s.expiration.Before(time.Now())
+}
+
+// Need different struct to handle requests
 type Movie struct {
 	Id       xid.ID    `json:"Id"`
 	Name     string    `json:"Name" validate:"required,min=2,max=169"`
@@ -51,7 +83,187 @@ type Comment struct {
 
 var movieList []Movie
 
+var Userlist []User
+
 var validate *validator.Validate
+
+func Logout(w http.ResponseWriter, r *http.Request) {
+	c, err := r.Cookie("session_token")
+	if err != nil {
+		if err == http.ErrNoCookie {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	sessionToken := c.Value
+
+	delete(sessions, sessionToken)
+
+	http.SetCookie(w, &http.Cookie{
+		Name:    "session_token",
+		Value:   "",
+		Expires: time.Now(),
+	})
+}
+
+// https://www.sohamkamani.com/golang/session-cookie-authentication/
+func Welcome(w http.ResponseWriter, r *http.Request) {
+	// We can obtain the session token from the requests cookies, which come with every request
+	c, err := r.Cookie("session_token")
+	if err != nil {
+		if err == http.ErrNoCookie {
+			// If the cookie is not set, return an unauthorized status
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		// For any other type of error, return a bad request status
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	sessionToken := c.Value
+
+	// We then get the session from our session map
+	userSession, exists := sessions[sessionToken]
+	if !exists {
+		// If the session token is not present in session map, return an unauthorized error
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	// If the session is present, but has expired, we can delete the session, and return
+	// an unauthorized status
+	if userSession.isExpired() {
+		delete(sessions, sessionToken)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	// REFRESH COOKIE EXPIRATION
+	newSessionToken := xid.New().String()
+	expiresAt := time.Now().Add(20 * time.Second)
+
+	sessions[newSessionToken] = Session{
+		username:   userSession.username,
+		expiration: expiresAt,
+	}
+	delete(sessions, sessionToken)
+
+	http.SetCookie(w, &http.Cookie{
+		Name:    "session_token",
+		Value:   newSessionToken,
+		Expires: expiresAt,
+	})
+	// END OF REFRESHING PART
+
+	// If the session is valid, return the welcome message to the user
+	w.Write([]byte(fmt.Sprintf("Welcome %s!", userSession.username)))
+}
+
+func Signin(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		validate = validator.New()
+
+		creds := &Credentials{}
+		err := json.NewDecoder(r.Body).Decode(creds)
+		if err != nil {
+			boom.BadRequest(w, "Credentials were bad")
+			return
+		}
+		err = validate.Struct(creds)
+		if err != nil {
+			boom.BadRequest(w, "Credentials were bad")
+			return
+		}
+		suser, err := getUserFromList(Userlist, creds.Username)
+		if err != nil {
+			boom.BadRequest(w, "No User/Password found.")
+			return
+		}
+		err = bcrypt.CompareHashAndPassword([]byte(suser.PasswordHash), []byte(creds.Password))
+		if err != nil {
+			boom.BadRequest(w, "Bad password.")
+			return
+		}
+
+		sessionToken := xid.New().String()
+		expiresAt := time.Now().Add(20 * time.Second)
+
+		// Set the token in the session map, along with the session information
+		sessions[sessionToken] = Session{
+			username:   creds.Username,
+			expiration: expiresAt,
+		}
+
+		http.SetCookie(w, &http.Cookie{
+			Name:    "session_token",
+			Value:   sessionToken,
+			Expires: expiresAt,
+		})
+	}
+}
+
+func getUserFromList(ul []User, username string) (*User, error) {
+	for _, u := range ul {
+		if u.Username == username {
+			return &u, nil
+		}
+	}
+	return nil, errors.New("User not found.")
+}
+
+func Signup(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		validate = validator.New()
+
+		creds := &Credentials{}
+		err := json.NewDecoder(r.Body).Decode(creds)
+		if err != nil {
+			boom.BadRequest(w, "Credentials were bad")
+			return
+		}
+		err = validate.Struct(creds)
+		if err != nil {
+			boom.BadRequest(w, "Credentials were bad")
+			return
+		}
+		newUser := User{
+			Username: creds.Username,
+		}
+		passHash, err := bcrypt.GenerateFromPassword([]byte(creds.Password), 8)
+		newUser.PasswordHash = string(passHash)
+		fmt.Println("new user:", newUser)
+		err = checkIfUserExists(Userlist, newUser)
+		if err != nil {
+			fmt.Println("error", err)
+			boom.BadRequest(w, "User already exists.")
+			return
+		}
+		newUser.setId()
+		Userlist = append(Userlist, newUser)
+
+		fmt.Println("Users in LIST:")
+		for _, u := range Userlist {
+			fmt.Printf("   %s\n", u.Username)
+			fmt.Printf("   %s\n", u.PasswordHash)
+		}
+
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func (user *User) setId() {
+	user.Id = xid.New()
+}
+
+func checkIfUserExists(userlist []User, user User) error {
+	for _, u := range userlist {
+		if u.Username == user.Username {
+			return errors.New("User already exists.")
+		}
+	}
+	return nil
+}
 
 func getMoviesFromFile() {
 	fmt.Println("Getting movies from file")
@@ -456,6 +668,7 @@ func removeWatch(w http.ResponseWriter, r *http.Request) {
 func handleRequests() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", home)
+	router.HandleFunc("/test", endpoints.Test)
 	router.HandleFunc("/movies", movies)
 	router.HandleFunc("/nothing", nothing)
 	router.HandleFunc("/movies/add", addMovie).Methods("POST", "OPTIONS")
@@ -463,6 +676,10 @@ func handleRequests() {
 	router.HandleFunc("/movies/{id}/edit", editMovie).Methods("PUT", "OPTIONS")
 	router.HandleFunc("/movies/{id}", getMovieById).Methods("GET", "OPTIONS")
 	router.HandleFunc("/movies/{mid}/viewing/{vid}/delete", removeWatch).Methods("DELETE", "OPTIONS")
+	router.HandleFunc("/signup", Signup).Methods("POST", "OPTIONS")
+	router.HandleFunc("/signin", Signin).Methods("POST", "OPTIONS")
+	router.HandleFunc("/w", Welcome).Methods("GET", "OPTIONS")
+	router.HandleFunc("/logout", Logout).Methods("GET", "OPTIONS")
 
 	/*
 		originsOk := handlers.AllowedOrigins([]string{"http://localhost:3000"})
