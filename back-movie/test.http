@@ -13,13 +13,12 @@ POST http://localhost:10000/signup
 Content-Type: application/json
 
 {
-  "username": "user{{$randomInt 0 10}}",
+  "username": "user{{$randomInt 0 3}}",
   "password": "pw"
 }
 
 ###
 # @name signin
-
 POST http://localhost:10000/signin
 Content-Type: application/json
 

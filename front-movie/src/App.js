@@ -4,6 +4,7 @@ import { useDispatch } from 'react-redux'
 import './App.css';
 import Types from './components/mui'
 import Typography from '@mui/material/Typography';
+import { Toolbar } from '@mui/material';
 
 import MovieList from './components/MovieList'
 import MovieForm from './components/MovieForm';
@@ -11,6 +12,8 @@ import MovieForm from './components/MovieForm';
 import Notification from './components/Notification'
 
 import { getAll } from './reducers/movieReducer'
+import { initializeUser } from './reducers/loginReducer'
+import LoginComponent from './components/LoginComponent';
 
 function App() {
   //const [movies, setMovies] = useState([])
@@ -27,12 +30,15 @@ function App() {
   useEffect(() => {
     dispatch(getAll())
     setLoading(false)
+    dispatch(initializeUser())
   }, [dispatch])
 
 
   return (
     <div className="App">
-
+      <Toolbar>
+        <LoginComponent />
+      </Toolbar>
       <Notification />
       <header className="App-header">
         <div>

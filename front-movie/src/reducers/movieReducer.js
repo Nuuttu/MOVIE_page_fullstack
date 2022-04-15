@@ -1,4 +1,4 @@
-import movieService from '../services/movieservice'
+import movieService from '../services/movieService'
 import { setNotification } from './notificationReducer'
 
 

@@ -23,7 +23,7 @@ import Paper from '@mui/material/Paper';
 
 import React, { useState } from 'react';
 import { DateRange } from '@mui/icons-material';
-import movieService from '../services/movieservice';
+import movieService from '../services/movieService';
 
 import { getAll, addViewing } from '../reducers/movieReducer';
 import { useDispatch } from "react-redux"

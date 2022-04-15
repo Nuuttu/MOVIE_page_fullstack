@@ -88,6 +88,12 @@ var Userlist []User
 var validate *validator.Validate
 
 func Logout(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,access-control-allow-origin, access-control-allow-headers")
+	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	w.Header().Set("Access-Control-Expose-Headers", "*")
+
 	c, err := r.Cookie("session_token")
 	if err != nil {
 		if err == http.ErrNoCookie {
@@ -103,6 +109,11 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, &http.Cookie{
 		Name:    "session_token",
+		Value:   "",
+		Expires: time.Now(),
+	})
+	http.SetCookie(w, &http.Cookie{
+		Name:    "user_name",
 		Value:   "",
 		Expires: time.Now(),
 	})
@@ -161,6 +172,13 @@ func Welcome(w http.ResponseWriter, r *http.Request) {
 }
 
 func Signin(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+	//w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,access-control-allow-origin, access-control-allow-headers")
+	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, POST")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	w.Header().Set("Access-Control-Expose-Headers", "*")
+
 	if r.Method == "POST" {
 		validate = validator.New()
 
@@ -200,6 +218,16 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 			Value:   sessionToken,
 			Expires: expiresAt,
 		})
+		http.SetCookie(w, &http.Cookie{
+			Name:    "user_name",
+			Value:   suser.Username,
+			Expires: expiresAt,
+		})
+		type j struct {
+			User_name string `json:"user_name"`
+		}
+		jdata := j{User_name: suser.Username}
+		json.NewEncoder(w).Encode(jdata)
 	}
 }
 
@@ -213,6 +241,10 @@ func getUserFromList(ul []User, username string) (*User, error) {
 }
 
 func Signup(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,access-control-allow-origin, access-control-allow-headers")
+	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, POST")
+
 	if r.Method == "POST" {
 		validate = validator.New()
 
