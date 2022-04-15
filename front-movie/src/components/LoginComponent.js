@@ -15,6 +15,14 @@ import Button from '@mui/material/Button';
 import Cookies from 'js-cookie';
 
 
+/**
+ * TODO:
+ * Cookie deleter
+ * 
+ * 
+ * 
+ */
+
 const LoginComponent = () => {
   const dispatch = useDispatch()
 

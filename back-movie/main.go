@@ -1,7 +1,6 @@
 package main
 
 import (
-	"back-movie/endpoints"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	movieservice "example/user/movieservice/movieservice"
 
 	"github.com/darahayes/go-boom"
 	"github.com/go-playground/validator/v10"
@@ -49,7 +50,7 @@ func (s Session) isExpired() bool {
 	return s.expiration.Before(time.Now())
 }
 
-// Need different struct to handle requests
+// Need different struct to handle requests. Maybe not...
 type Movie struct {
 	Id       xid.ID    `json:"Id"`
 	Name     string    `json:"Name" validate:"required,min=2,max=169"`
@@ -700,7 +701,7 @@ func removeWatch(w http.ResponseWriter, r *http.Request) {
 func handleRequests() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", home)
-	router.HandleFunc("/test", endpoints.Test)
+	router.HandleFunc("/test", movieservice.Test)
 	router.HandleFunc("/movies", movies)
 	router.HandleFunc("/nothing", nothing)
 	router.HandleFunc("/movies/add", addMovie).Methods("POST", "OPTIONS")
