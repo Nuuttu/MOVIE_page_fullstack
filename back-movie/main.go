@@ -11,8 +11,6 @@ import (
 	"strings"
 	"time"
 
-	movieservice "example/user/movieservice/movieservice"
-
 	"github.com/darahayes/go-boom"
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
@@ -701,7 +699,7 @@ func removeWatch(w http.ResponseWriter, r *http.Request) {
 func handleRequests() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", home)
-	router.HandleFunc("/test", movieservice.Test)
+	//router.HandleFunc("/test", movieservice.Test)
 	router.HandleFunc("/movies", movies)
 	router.HandleFunc("/nothing", nothing)
 	router.HandleFunc("/movies/add", addMovie).Methods("POST", "OPTIONS")

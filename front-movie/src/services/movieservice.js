@@ -1,8 +1,10 @@
 import axios from "axios";
 
-const baseUrl = 'http://localhost:10000'
+//const baseUrl = 'http://localhost:10000'
+const baseUrl = process.env.REACT_APP_BASE_URL
 
 const getAll = async () => {
+  console.log("baseurl", process.env.REACT_APP_BASE_URL)
   const response = await axios.get(baseUrl + '/movies')
   console.log('request', response.data)
   // return response.then(response => response.data)
