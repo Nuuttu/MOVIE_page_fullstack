@@ -11,6 +11,10 @@ import (
 	"strings"
 	"time"
 
+	"example.com/endpoints"
+	"example.com/excelporter"
+	mystructs "example.com/mysctructs"
+
 	"github.com/darahayes/go-boom"
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
@@ -19,12 +23,16 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+/*
 type User struct {
 	Id           xid.ID  `json:"Id"`
 	Username     string  `json:"Name" validate:"required,min=2,max=69"`
 	Movielist    []Movie `json:"Movielist"`
 	PasswordHash string  `json:"PasswordHash"`
 }
+*/
+
+type User = mystructs.User
 
 type Credentials struct {
 	Username string `json:"username" validate:"required,min=2,max=69"`
@@ -49,6 +57,7 @@ func (s Session) isExpired() bool {
 }
 
 // Need different struct to handle requests. Maybe not...
+/*
 type Movie struct {
 	Id       xid.ID    `json:"Id"`
 	Name     string    `json:"Name" validate:"required,min=2,max=169"`
@@ -58,6 +67,9 @@ type Movie struct {
 	Watches  []Watch   `json:"Watches"`
 	Comments []Comment `json:"Comments"`
 }
+*/
+
+type Movie = mystructs.Movie
 
 type EditMovie struct {
 	Name   string `json:"Name" validate:"required,min=2,max=169"`
@@ -66,12 +78,15 @@ type EditMovie struct {
 	Review string `json:"Review" validate:"min=0,max=16900"`
 }
 
+/*
 type Watch struct {
 	Id    xid.ID    `json:"Id"`
 	Date  time.Time `json:"Date" validate:"datetime"`
 	Place string    `json:"Place"`
 	Note  string    `json:"Note"`
 }
+*/
+type Watch = mystructs.Watch
 
 type Comment struct {
 	Id            xid.ID    `json:"Id"`
@@ -270,7 +285,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 			boom.BadRequest(w, "User already exists.")
 			return
 		}
-		newUser.setId()
+		newUser.SetId()
 		Userlist = append(Userlist, newUser)
 
 		fmt.Println("Users in LIST:")
@@ -283,10 +298,11 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (user *User) setId() {
+/*
+func (user *User) SetId() {
 	user.Id = xid.New()
 }
-
+*/
 func checkIfUserExists(userlist []User, user User) error {
 	for _, u := range userlist {
 		if u.Username == user.Username {
@@ -324,7 +340,7 @@ func getMoviesFromFile() {
 			//					for ir, colCell := range row {
 			// }
 			var newMovie Movie
-			newMovie.setId()
+			newMovie.SetId()
 			newMovie.Name = row[0]
 			newMovie.Year = 0
 			rating, e := strconv.ParseFloat(row[1], 10)
@@ -345,7 +361,7 @@ func getMoviesFromFile() {
 					wDate, _ := time.Parse("2006-01-02", strings.Replace(row[3], ".", "-", -1))
 					//fmt.Println("wDate", wDate)
 					newWatch.Date = wDate
-					newWatch.setId()
+					newWatch.SetId()
 					//fmt.Println("enwWathc", newWatch)
 					newMovie.Watches = append(newMovie.Watches, newWatch)
 				}
@@ -355,12 +371,12 @@ func getMoviesFromFile() {
 					wDate, _ := time.Parse("2006-01-02", strings.Replace(row[4], ".", "-", -1))
 					//fmt.Println("wDate", wDate)
 					newWatch.Date = wDate
-					newWatch.setId()
+					newWatch.SetId()
 					//fmt.Println("enwWathc", newWatch)
 					newMovie.Watches = append(newMovie.Watches, newWatch)
 				}
 				var newWatch Watch
-				newWatch.setId()
+				newWatch.SetId()
 				newMovie.Watches = append(newMovie.Watches, newWatch)
 			} else if len(row) == 4 {
 				//fmt.Printf("is?\n %s,\n %s,\n %s,\n %s,\n", row[0], row[1], row[2], row[3])
@@ -374,7 +390,7 @@ func getMoviesFromFile() {
 					wDate, _ := time.Parse("2006-01-02", strings.Replace(row[3], ".", "-", -1))
 					//fmt.Println("wDate", wDate)
 					newWatch.Date = wDate
-					newWatch.setId()
+					newWatch.SetId()
 					//fmt.Println("enwWathc", newWatch)
 					newMovie.Watches = append(newMovie.Watches, newWatch)
 				}
@@ -385,12 +401,12 @@ func getMoviesFromFile() {
 					newMovie.Review = row[2]
 				}
 				var newWatch Watch
-				newWatch.setId()
+				newWatch.SetId()
 				newMovie.Watches = append(newMovie.Watches, newWatch)
 			} else {
 				//fmt.Printf("is?\n %s,\n %s,\n", row[0], row[1])
 				var newWatch Watch
-				newWatch.setId()
+				newWatch.SetId()
 				newMovie.Watches = append(newMovie.Watches, newWatch)
 			}
 
@@ -451,11 +467,11 @@ func addMovie(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		fmt.Printf("new Movie:\n{\n Name: %s,\n Year: %d\n Rating: %d\n Review: %s\n}\n", newMovie.Name, newMovie.Year, newMovie.Rating, newMovie.Review)
-		newMovie.setId()
+		newMovie.SetId()
 		var newWatch Watch // NOT ADDING "CANT REMEMEBER" TÄPPÄ
 		json.Unmarshal(reqBody, &newWatch)
 		if !newWatch.Date.IsZero() {
-			newWatch.setId()
+			newWatch.SetId()
 			newMovie.Watches = append(newMovie.Watches, newWatch)
 		}
 		fmt.Printf("new Movie details: \nName: %s \nReview: %s\nRating: %d\nDate: %s\nPlace: %s\nNote: %s\n ", newMovie.Name, newMovie.Review, newMovie.Rating, newWatch.Date, newWatch.Place, newWatch.Note)
@@ -499,7 +515,7 @@ func addViewing(w http.ResponseWriter, r *http.Request) {
 
 			var newWatch Watch
 			json.Unmarshal(reqBody, &newWatch)
-			newWatch.setId()
+			newWatch.SetId()
 
 			/* Tää ei toimi näin Time.time ei toimi validoiniissa näin
 			err := validate.Struct(newWatch)
@@ -521,10 +537,11 @@ func addViewing(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (movie *Movie) setId() {
+/*
+func (movie *Movie) SetId() {
 	movie.Id = xid.New()
 }
-
+*/
 func getMovieIndexFromList(xid xid.ID) (int, error) {
 	for i, m := range movieList {
 		if xid == m.Id {
@@ -543,10 +560,11 @@ func containsMovieById(ml []Movie, id string) bool {
 	return false
 }
 
-func (watch *Watch) setId() {
+/*
+func (watch *Watch) SetId() {
 	watch.Id = xid.New()
 }
-
+*/
 func getWatchIndexFromList(wl []Watch, xid xid.ID) (int, error) {
 	for i, w := range wl {
 		if xid == w.Id {
@@ -604,7 +622,8 @@ func editMovie(w http.ResponseWriter, r *http.Request) {
 
 			fmt.Println("movielist index movie: ", movieList[movieIndex].Name)
 
-			movieList[movieIndex].modifyMovie(newMovie)
+			//movieList[movieIndex].modifyMovie(newMovie)
+			// DO SOMETHING HERE
 
 			fmt.Printf("new Edited details: \n   Movie Name: %s \n   Year: %d\n   Rating: %d\n   Review: %s\n ", movieList[movieIndex].Name, movieList[movieIndex].Year, movieList[movieIndex].Rating, movieList[movieIndex].Review)
 
@@ -641,6 +660,7 @@ func getMovieById(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/*
 func (m *Movie) modifyMovie(newMovie EditMovie) {
 	fmt.Printf("new name: %s, new year: %d\n", (&newMovie).Name, &newMovie.Year)
 	m.Name = newMovie.Name
@@ -648,7 +668,7 @@ func (m *Movie) modifyMovie(newMovie EditMovie) {
 	m.Rating = newMovie.Rating
 	m.Review = newMovie.Review
 }
-
+*/ // NEED TO HANDLE THESE POINTER FUNCTIONS PROPERLY
 func removeWatch(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,access-control-allow-origin, access-control-allow-headers")
@@ -723,6 +743,9 @@ func handleRequests() {
 
 func main() {
 	fmt.Println("Setting up a server on http://localhost:10000")
+	excelporter.Excelimporter()
+	excelporter.Main()
+	endpoints.Movies()
 	getMoviesFromFile()
 	handleRequests()
 }

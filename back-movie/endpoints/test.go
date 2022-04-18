@@ -1,7 +1,7 @@
-package movieservice
+package endpoints
 
 import "fmt"
 
-func test() {
+func Test() {
 	fmt.Println("test")
 }
