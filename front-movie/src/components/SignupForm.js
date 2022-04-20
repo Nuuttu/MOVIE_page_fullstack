@@ -2,7 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Button, TextField } from '@material-ui/core'
 
-const LoginForm = ({
+const SignupForm = ({
   handleSubmit,
   handleUsernameChange,
   handlePasswordChange,
@@ -11,13 +11,13 @@ const LoginForm = ({
 }) => {
   return (
     <div>
-      <h2>Login</h2>
+      <h2>Sign Up</h2>
 
       <form onSubmit={handleSubmit}>
         <div>
           <TextField
             label="username"
-            id='login-username'
+            id='signup-username'
             value={username}
             onChange={handleUsernameChange}
           />
@@ -26,18 +26,18 @@ const LoginForm = ({
           <TextField
             label='password'
             type="password"
-            id='login-password'
+            id='signup-password'
             value={password}
             onChange={handlePasswordChange}
           />
         </div>
-        <Button variant='contained' color='primary' id='login-button' type="submit">login</Button>
+        <Button variant='contained' color='primary' id='signup-button' type="submit">Sign Up</Button>
       </form>
     </div>
   )
 }
 
-LoginForm.propTypes = {
+SignupForm.propTypes = {
   handleSubmit: PropTypes.func.isRequired,
   handleUsernameChange: PropTypes.func.isRequired,
   handlePasswordChange: PropTypes.func.isRequired,
@@ -45,4 +45,4 @@ LoginForm.propTypes = {
   password: PropTypes.string.isRequired
 }
 
-export default LoginForm
+export default SignupForm

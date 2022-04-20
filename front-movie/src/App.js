@@ -14,6 +14,7 @@ import Notification from './components/Notification'
 import { getAll } from './reducers/movieReducer'
 import { initializeUser } from './reducers/loginReducer'
 import LoginComponent from './components/LoginComponent';
+import SignupComponent from './components/SignupComponent';
 
 function App() {
   //const [movies, setMovies] = useState([])
@@ -38,6 +39,7 @@ function App() {
     <div className="App">
       <Toolbar>
         <LoginComponent />
+        <SignupComponent />
       </Toolbar>
       <Notification />
       <header className="App-header">

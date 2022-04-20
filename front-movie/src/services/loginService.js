@@ -12,10 +12,8 @@ const baseUrl = process.env.REACT_APP_BASE_URL
  */
 
 
-
-
 const login = async credentials => {
-  const response = await axios.post(baseUrl, credentials, { withCredentials: true })
+  const response = await axios.post(`${baseUrl}/signin`, credentials, { withCredentials: true })
   console.log('responser', response)
   return response.data
 }
@@ -26,4 +24,7 @@ const logout = async token => {
   return response.data
 }
  */
-export default { login }
+
+const loginService = { login }
+
+export default loginService

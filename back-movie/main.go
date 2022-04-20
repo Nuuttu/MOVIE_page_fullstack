@@ -7,96 +7,48 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 
-	"example.com/endpoints"
+	endpoints "example.com/endpoints"
 	"example.com/excelporter"
 	mystructs "example.com/mysctructs"
 
 	"github.com/darahayes/go-boom"
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 	"github.com/rs/xid"
 	"github.com/xuri/excelize/v2"
 	"golang.org/x/crypto/bcrypt"
 )
 
+/* TODO
+	FIX setID
 /*
-type User struct {
-	Id           xid.ID  `json:"Id"`
-	Username     string  `json:"Name" validate:"required,min=2,max=69"`
-	Movielist    []Movie `json:"Movielist"`
-	PasswordHash string  `json:"PasswordHash"`
-}
+
+
+/*
+BASE_URL=http://localhost
+BASE_PORT=10000
+REACT_URL=http://localhost:3000
 */
 
 type User = mystructs.User
-
-type Credentials struct {
-	Username string `json:"username" validate:"required,min=2,max=69"`
-	Password string `json:"password" validate:"required,min=2,max=69"`
-}
-
-// uppercase json hmmhmm
-type UserDetails struct {
-	First_name string `json:"first_name"`
-	Last_name  string `json:"last_name"`
-}
-
-type Session struct {
-	username   string
-	expiration time.Time
-}
+type Credentials = mystructs.Credentials // uppercase json hmmhmm
+type UserDetails = mystructs.UserDetails
+type Session = mystructs.Session
+type Movie = mystructs.Movie // Need different struct to handle requests. Maybe not...
+type EditMovie = mystructs.EditMovie
+type Watch = mystructs.Watch
+type Comment = mystructs.Comment
 
 var sessions = map[string]Session{}
 
-func (s Session) isExpired() bool {
-	return s.expiration.Before(time.Now())
-}
-
-// Need different struct to handle requests. Maybe not...
-/*
-type Movie struct {
-	Id       xid.ID    `json:"Id"`
-	Name     string    `json:"Name" validate:"required,min=2,max=169"`
-	Year     int       `json:"Year" validate:"numeric,gte=0,lte=2100"`
-	Rating   int       `json:"Rating" validate:"numeric,gte=0,lte=10"`
-	Review   string    `json:"Review" validate:"min=0,max=16900"`
-	Watches  []Watch   `json:"Watches"`
-	Comments []Comment `json:"Comments"`
-}
-*/
-
-type Movie = mystructs.Movie
-
-type EditMovie struct {
-	Name   string `json:"Name" validate:"required,min=2,max=169"`
-	Year   int    `json:"Year" validate:"numeric,gte=0,lte=2100"`
-	Rating int    `json:"Rating" validate:"numeric,gte=0,lte=10"`
-	Review string `json:"Review" validate:"min=0,max=16900"`
-}
-
-/*
-type Watch struct {
-	Id    xid.ID    `json:"Id"`
-	Date  time.Time `json:"Date" validate:"datetime"`
-	Place string    `json:"Place"`
-	Note  string    `json:"Note"`
-}
-*/
-type Watch = mystructs.Watch
-
-type Comment struct {
-	Id            xid.ID    `json:"Id"`
-	Owner         string    `json:"Owner"`
-	Content       string    `json:"Content"`
-	Creation_Time time.Time `json:"Creation_Time"`
-}
-
-var movieList []Movie
-
+//var MovieList []Movie
+var MovieList = mystructs.MovieList
 var Userlist []User
 
 var validate *validator.Validate
@@ -158,7 +110,7 @@ func Welcome(w http.ResponseWriter, r *http.Request) {
 	}
 	// If the session is present, but has expired, we can delete the session, and return
 	// an unauthorized status
-	if userSession.isExpired() {
+	if userSession.IsExpired() {
 		delete(sessions, sessionToken)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
@@ -169,8 +121,8 @@ func Welcome(w http.ResponseWriter, r *http.Request) {
 	expiresAt := time.Now().Add(20 * time.Second)
 
 	sessions[newSessionToken] = Session{
-		username:   userSession.username,
-		expiration: expiresAt,
+		Username:   userSession.Username,
+		Expiration: expiresAt,
 	}
 	delete(sessions, sessionToken)
 
@@ -182,7 +134,7 @@ func Welcome(w http.ResponseWriter, r *http.Request) {
 	// END OF REFRESHING PART
 
 	// If the session is valid, return the welcome message to the user
-	w.Write([]byte(fmt.Sprintf("Welcome %s!", userSession.username)))
+	w.Write([]byte(fmt.Sprintf("Welcome %s!", userSession.Username)))
 }
 
 func Signin(w http.ResponseWriter, r *http.Request) {
@@ -223,8 +175,8 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 
 		// Set the token in the session map, along with the session information
 		sessions[sessionToken] = Session{
-			username:   creds.Username,
-			expiration: expiresAt,
+			Username:   creds.Username,
+			Expiration: expiresAt,
 		}
 
 		http.SetCookie(w, &http.Cookie{
@@ -255,9 +207,12 @@ func getUserFromList(ul []User, username string) (*User, error) {
 }
 
 func Signup(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("REACT_URL"))
+	//w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,access-control-allow-origin, access-control-allow-headers")
 	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, POST")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	w.Header().Set("Access-Control-Expose-Headers", "*")
 
 	if r.Method == "POST" {
 		validate = validator.New()
@@ -411,7 +366,7 @@ func getMoviesFromFile() {
 			}
 
 			//fmt.Println("newMovie", newMovie)
-			movieList = append(movieList, newMovie)
+			MovieList = append(MovieList, newMovie)
 			//fmt.Println()
 		}
 	}
@@ -431,11 +386,6 @@ func home(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Home")
 }
 
-func nothing(w http.ResponseWriter, r *http.Request) {
-	boom.NotFound(w, "Sorry, there's nothing here.")
-	// https://pkg.go.dev/github.com/darahayes/go-boom?utm_source=godoc
-}
-
 func movies(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Movies sent")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -443,7 +393,7 @@ func movies(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET")
 
 	w.Header().Add("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(movieList)
+	json.NewEncoder(w).Encode(MovieList)
 }
 
 // ENDPOINT Lisää listan
@@ -489,7 +439,7 @@ func addMovie(w http.ResponseWriter, r *http.Request) {
 			}
 		*/
 
-		movieList = append(movieList, newMovie)
+		MovieList = append(MovieList, newMovie)
 		w.Header().Add("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(newMovie)
 	}
@@ -507,7 +457,7 @@ func addViewing(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		id := vars["id"]
 
-		if !containsMovieById(movieList, id) {
+		if !containsMovieById(MovieList, id) {
 			boom.BadRequest(w, "No Movie by that ID")
 		} else {
 			reqBody, _ := ioutil.ReadAll(r.Body)
@@ -526,10 +476,10 @@ func addViewing(w http.ResponseWriter, r *http.Request) {
 			mxidm, _ := xid.FromString(id)
 			movieIndex, _ := getMovieIndexFromList(mxidm)
 
-			fmt.Println("movielist index movie: ", movieList[movieIndex].Name)
-			movieList[movieIndex].Watches = append(movieList[movieIndex].Watches, newWatch)
+			fmt.Println("Movielist index movie: ", MovieList[movieIndex].Name)
+			MovieList[movieIndex].Watches = append(MovieList[movieIndex].Watches, newWatch)
 
-			fmt.Printf("new Viewing details: \nMovie Name: %s \nDate: %s \nPlace: %s\nNote: %s\n", movieList[movieIndex].Name, newWatch.Date, newWatch.Place, newWatch.Note)
+			fmt.Printf("new Viewing details: \nMovie Name: %s \nDate: %s \nPlace: %s\nNote: %s\n", MovieList[movieIndex].Name, newWatch.Date, newWatch.Place, newWatch.Note)
 			w.Header().Add("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(newWatch)
 
@@ -543,7 +493,7 @@ func (movie *Movie) SetId() {
 }
 */
 func getMovieIndexFromList(xid xid.ID) (int, error) {
-	for i, m := range movieList {
+	for i, m := range MovieList {
 		if xid == m.Id {
 			return i, nil
 		}
@@ -604,7 +554,7 @@ func editMovie(w http.ResponseWriter, r *http.Request) {
 		id := vars["id"]
 		fmt.Printf("PUT ID: %s\n", id)
 
-		if !containsMovieById(movieList, id) {
+		if !containsMovieById(MovieList, id) {
 			boom.BadRequest(w, "No Movie by that ID")
 		} else {
 			reqBody, _ := ioutil.ReadAll(r.Body)
@@ -620,15 +570,15 @@ func editMovie(w http.ResponseWriter, r *http.Request) {
 			mxidm, _ := xid.FromString(id)
 			movieIndex, _ := getMovieIndexFromList(mxidm)
 
-			fmt.Println("movielist index movie: ", movieList[movieIndex].Name)
+			fmt.Println("Movielist index movie: ", MovieList[movieIndex].Name)
 
-			//movieList[movieIndex].modifyMovie(newMovie)
+			MovieList[movieIndex].ModifyMovie(newMovie)
 			// DO SOMETHING HERE
 
-			fmt.Printf("new Edited details: \n   Movie Name: %s \n   Year: %d\n   Rating: %d\n   Review: %s\n ", movieList[movieIndex].Name, movieList[movieIndex].Year, movieList[movieIndex].Rating, movieList[movieIndex].Review)
+			fmt.Printf("new Edited details: \n   Movie Name: %s \n   Year: %d\n   Rating: %d\n   Review: %s\n ", MovieList[movieIndex].Name, MovieList[movieIndex].Year, MovieList[movieIndex].Rating, MovieList[movieIndex].Review)
 
 			w.Header().Add("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(movieList[movieIndex])
+			json.NewEncoder(w).Encode(MovieList[movieIndex])
 
 		}
 	}
@@ -643,7 +593,7 @@ func getMovieById(w http.ResponseWriter, r *http.Request) {
 	id := vars["id"]
 	fmt.Printf("GET ID: %s\n", id)
 
-	if !containsMovieById(movieList, id) {
+	if !containsMovieById(MovieList, id) {
 		boom.BadRequest(w, "No Movie by that ID")
 	} else {
 		reqBody, _ := ioutil.ReadAll(r.Body)
@@ -652,10 +602,10 @@ func getMovieById(w http.ResponseWriter, r *http.Request) {
 		mxidm, _ := xid.FromString(id)
 		movieIndex, _ := getMovieIndexFromList(mxidm)
 
-		fmt.Println("movielist index movie: ", movieList[movieIndex].Name)
+		fmt.Println("Movielist index movie: ", MovieList[movieIndex].Name)
 
 		w.Header().Add("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(movieList[movieIndex])
+		json.NewEncoder(w).Encode(MovieList[movieIndex])
 
 	}
 }
@@ -681,25 +631,25 @@ func removeWatch(w http.ResponseWriter, r *http.Request) {
 		mid := vars["mid"]
 		fmt.Printf("DELETE ID: %s\n", vid)
 
-		if !containsMovieById(movieList, mid) {
+		if !containsMovieById(MovieList, mid) {
 			boom.BadRequest(w, "No Movie by that ID")
 		} else {
 
 			mxidm, _ := xid.FromString(mid)
 			movieIndex, _ := getMovieIndexFromList(mxidm)
 
-			if !containsWatchById(movieList[movieIndex].Watches, vid) {
+			if !containsWatchById(MovieList[movieIndex].Watches, vid) {
 				boom.BadRequest(w, "No Viewing by that ID")
 			} else {
 				// reqBody, _ := ioutil.ReadAll(r.Body)
 				// fmt.Println("reqBody ", string(reqBody))
 
 				vxidm, _ := xid.FromString(vid)
-				watchIndex, _ := getWatchIndexFromList(movieList[movieIndex].Watches, vxidm)
+				watchIndex, _ := getWatchIndexFromList(MovieList[movieIndex].Watches, vxidm)
 
-				// fmt.Println("movielist index movie: ", watchList[watchIndex].Name)
-				deletedWatch := movieList[movieIndex].Watches[watchIndex]
-				movieList[movieIndex].Watches = append(movieList[movieIndex].Watches[:watchIndex], movieList[movieIndex].Watches[watchIndex+1:]...)
+				// fmt.Println("Movielist index movie: ", watchList[watchIndex].Name)
+				deletedWatch := MovieList[movieIndex].Watches[watchIndex]
+				MovieList[movieIndex].Watches = append(MovieList[movieIndex].Watches[:watchIndex], MovieList[movieIndex].Watches[watchIndex+1:]...)
 
 				w.Header().Add("Content-Type", "application/json")
 				json.NewEncoder(w).Encode(deletedWatch)
@@ -721,7 +671,8 @@ func handleRequests() {
 	router.HandleFunc("/", home)
 	//router.HandleFunc("/test", movieservice.Test)
 	router.HandleFunc("/movies", movies)
-	router.HandleFunc("/nothing", nothing)
+	//router.HandleFunc("/movies", endpoints.Movies) // Not working. Needs to get MOVIE INFO FROM SOMEWHERE
+	router.HandleFunc("/nothing", endpoints.Nothing)
 	router.HandleFunc("/movies/add", addMovie).Methods("POST", "OPTIONS")
 	router.HandleFunc("/movies/{id}/viewing/add", addViewing).Methods("POST", "OPTIONS")
 	router.HandleFunc("/movies/{id}/edit", editMovie).Methods("PUT", "OPTIONS")
@@ -742,10 +693,23 @@ func handleRequests() {
 }
 
 func main() {
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	base_url := os.Getenv("BASE_URL")
+	base_port := os.Getenv("BASE_PORT")
+	REACT_URL := os.Getenv("REACT_URL")
+
+	fmt.Println("base_url", base_url)
+	fmt.Println("base_port", base_port)
+	fmt.Println("react_url", REACT_URL)
+
 	fmt.Println("Setting up a server on http://localhost:10000")
 	excelporter.Excelimporter()
 	excelporter.Main()
-	endpoints.Movies()
+
 	getMoviesFromFile()
 	handleRequests()
 }

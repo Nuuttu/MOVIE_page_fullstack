@@ -26,8 +26,8 @@ type UserDetails struct {
 }
 
 type Session struct {
-	username   string
-	expiration time.Time
+	Username   string
+	Expiration time.Time
 }
 
 type Movie struct {
@@ -61,15 +61,18 @@ type Comment struct {
 	Creation_Time time.Time `json:"Creation_Time"`
 }
 
-func (movie Movie) SetId() {
+var MovieList []Movie
+
+// Set id to Pointed Movie struct
+func (movie *Movie) SetId() {
 	movie.Id = xid.New()
 }
 
-func (watch Watch) SetId() {
+func (watch *Watch) SetId() {
 	watch.Id = xid.New()
 }
 
-func (user User) SetId() {
+func (user *User) SetId() {
 	user.Id = xid.New()
 }
 
@@ -79,4 +82,8 @@ func (m *Movie) ModifyMovie(newMovie EditMovie) {
 	m.Year = newMovie.Year
 	m.Rating = newMovie.Rating
 	m.Review = newMovie.Review
+}
+
+func (s *Session) IsExpired() bool {
+	return s.Expiration.Before(time.Now())
 }
